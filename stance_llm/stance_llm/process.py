@@ -45,8 +45,6 @@ def detect_stance(eg, lm, chain_label: str, lm2=None, chat=True, entity_mask=Non
         classification = task.irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
     if chain_label == "nise":
         classification = task.nested_irrelevant_summary_explicit(lm=lm,chat = chat,lm2=lm2)
-    if chain_label == "cb":
-        classification = task.codebook(lm=lm,chat = chat,lm2=lm2)
     if chain_label == "s2is":
         classification = task.summarize_v2_irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
     if chain_label == "s2":
@@ -55,8 +53,6 @@ def detect_stance(eg, lm, chain_label: str, lm2=None, chat=True, entity_mask=Non
         classification = task.irrelevant_summarize_v2_chain(lm=lm, chat=chat,lm2=lm2)
     if chain_label == "nis2e":
         classification = task.nested_irrelevant_summary_v2_explicit(lm=lm,chat = chat,lm2=lm2)
-    if chain_label == "nis2eq":
-        classification = task.nested_irrelevant_summary_v2_explicit_questioning(lm=lm,chat = chat,lm2=lm2)
     return(classification)
 
 def make_export_folder(export_folder,
