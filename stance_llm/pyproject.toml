@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "stance-llm"
+version = "0.1.0"
+description = "Classify stances of entities related to a statement in text using large language models through guidance-llm"
+authors = ["Mario Angst <mario.angst@uzh.ch>", "Viviane Walker <viviane.walker@uzh.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+guidance = "^0.1.10"
+loguru = "^0.7.2"
+tdqm = "^0.0.1"
+polars = "^0.20.15"
+wonderwords = "^2.2.0"
+
+[tool.poetry.group.dev.dependencies]
+huggingface-hub = "^0.21.3"
+python-dotenv = "^1.0.1"
+loguru = "^0.7.2"
+ptpython = "^3.0.26"
+srsly = "^2.4.8"
+scikit-learn = "^1.4.1.post1"
+matplotlib = "^3.8.3"
+seaborn = "^0.13.2"
+tenacity = "^8.2.3"
+typer = "^0.9.0"
+optimum = "^1.17.1"
+transformers = "^4.38.2"
+torch = {version = "^2.2.1+cu118", source = "torch-cu118"}
+torchvision = {version = "^0.17.1+cu118", source = "torch-cu118"}
+llama-cpp-python = "0.2.26"
+accelerate = "^0.27.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
