@@ -8,9 +8,9 @@ from sklearn.metrics import classification_report
 from loguru import logger
 from wonderwords import RandomWord
 
-from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_lm_chains
+from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_llm_chains
 
-def detect_stance(eg:dict, lm, chain_label:str, lm2=None, chat=True, entity_mask=None)-> "StanceClassification":
+def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> "StanceClassification":
     """Detect stance of an entity in a dictionary input
 
     Expects a dictionary item with a "text" key containing text to classify and
@@ -20,8 +20,8 @@ def detect_stance(eg:dict, lm, chain_label:str, lm2=None, chat=True, entity_mask
 
     Args:
         eg: A dictionary item with a "text" key containing text to classify and a "org_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance for
-        lm: A guidance model backend from guidance.models
-        chain_label: A implemented lm chain. See stance_llm.base.get_registered_chains for list
+        llm: A guidance model backend from guidance.models
+        chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
     
     Returns:
         A StanceClassification class object with a stance and meta data
@@ -29,10 +29,10 @@ def detect_stance(eg:dict, lm, chain_label:str, lm2=None, chat=True, entity_mask
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
         raise NameError('Chain label is not registered')
-    if lm2 is not None:
-        allowed_dual_lm_labels = get_allowed_dual_lm_chains()
-        if chain_label not in allowed_dual_lm_labels:
-            raise NameError(f"Prompt chain is not set up for using two lm backends. Allowed are {allowed_dual_lm_labels}")
+    if llm2 is not None:
+        allowed_dual_llm_labels = get_allowed_dual_llm_chains()
+        if chain_label not in allowed_dual_llm_labels:
+            raise NameError(f"Prompt chain is not set up for using two llm backends. Allowed are {allowed_dual_llm_labels}")
     entity = eg["org_text"]
     text = eg["text"]
     statement = eg["statement"]
@@ -43,19 +43,19 @@ def detect_stance(eg:dict, lm, chain_label:str, lm2=None, chat=True, entity_mask
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
     if chain_label == "sis":
-        classification = task.summarize_irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "is":
-        classification = task.irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "nise":
-        classification = task.nested_irrelevant_summary_explicit(lm=lm,chat = chat,lm2=lm2)
+        classification = task.nested_irrelevant_summary_explicit(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "s2is":
-        classification = task.summarize_v2_irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_v2_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "s2":
-        classification = task.summarize_v2_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_v2_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "is2":
-        classification = task.irrelevant_summarize_v2_chain(lm=lm, chat=chat,lm2=lm2)
+        classification = task.irrelevant_summarize_v2_chain(llm=llm, chat=chat,llm2=llm2)
     if chain_label == "nis2e":
-        classification = task.nested_irrelevant_summary_v2_explicit(lm=lm,chat = chat,lm2=lm2)
+        classification = task.nested_irrelevant_summary_v2_explicit(llm=llm,chat = chat,llm2=llm2)
     return(classification)
 
 def make_export_folder(export_folder:str,
@@ -88,11 +88,11 @@ def get_prompt_texts_from_meta(classification: StanceClassification) -> dict:
     Returns:
         dict: gets all the meta information - created during the stance classification with a prompt chain - and returns it as a string (instead of a nested dictionary)
     """
-    if "lms" not in classification.meta:
+    if "llms" not in classification.meta:
         return({})
     else:
         components = {}
-        chain_components = classification.meta["lms"]
+        chain_components = classification.meta["llms"]
         for component_key in chain_components.keys():
             components[component_key] = {"prompt_text":str(chain_components[component_key])}
     return(components)
@@ -100,7 +100,7 @@ def get_prompt_texts_from_meta(classification: StanceClassification) -> dict:
 
 def process(
     egs,
-    lm,
+    llm,
     export_folder:str,
     model_used:str,
     chain_used:str,
@@ -109,7 +109,7 @@ def process(
     stream_out=True,
     id_key = "id",
     chat=True,
-    lm2=None,
+    llm2=None,
     entity_mask=None):
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
@@ -120,10 +120,10 @@ def process(
     """
     pred_egs = []
     for eg in tqdm(egs):
-        eg["stance_classification"] = detect_stance(eg,lm=lm,
+        eg["stance_classification"] = detect_stance(eg,llm=llm,
                                                     chain_label=chain_used,
                                                     chat=chat,
-                                                    lm2=lm2,
+                                                    llm2=llm2,
                                                     entity_mask=entity_mask)
         eg["run_alias"] = run_alias
         eg["stance_pred"] = eg["stance_classification"].stance
@@ -298,27 +298,27 @@ def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
     return(egs)
 
 def process_evaluate(egs,
-               lm,
+               llm,
                model_used:str,
                chain_used:str,
                chat=True,
                wait_time=0.5,
                export_folder="./evaluations",
-               lm2=None,
+               llm2=None,
                entity_mask=None):
-    """Process a list of examples to via a lm backend, stream out results, evaluate against true values and save evaluations
+    """Process a list of examples to via a llm backend, stream out results, evaluate against true values and save evaluations
 
     Args:
         egs: A list of dictionary items with a "text" key containing text to classify, a "org_text" key containing a string for the organizational entity to predict stance for and a "stance_true" key containing a true stance to evaluate against
-        lm: A guidance model backend from guidance.models
+        llm: A guidance model backend from guidance.models
         model_used: String giving label for model backend
-        chain_used: An implemented lm chain. See stance_llm.base.get_registered_chains for list
+        chain_used: An implemented llm chain. See stance_llm.base.get_registered_chains for list
         chat (bool, optional): Should a chat model variant be used? Defaults to True.
         export_folder (str, optional): Folder for evaluation output. Defaults to "./evaluations".
     """
     preds = process(
         egs = egs,
-        lm=lm,
+        llm=llm,
         export_folder=export_folder,
         model_used=model_used,
         chain_used=chain_used,
@@ -326,7 +326,7 @@ def process_evaluate(egs,
         true_stance_key="stance_true",
         stream_out=True,
         chat=chat,
-        lm2=lm2,
+        llm2=llm2,
         entity_mask=entity_mask
         )
     eval_metrics = evaluate(preds)
