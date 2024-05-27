@@ -1,4 +1,5 @@
 from loguru import logger
+from typing_extensions import Self
 import re
 
 from guidance import models, gen, select, user, system, assistant, instruction
@@ -65,8 +66,17 @@ def get_allowed_dual_llm_chains():
     return(ALLOWED_DUAL_LLM_CHAINS)
 
 class StanceClassification:
-    """constructs German prompt chains
+    """Class used for classifications of stances by a specified entity in a text regarding a statement through an LLM.
+    
+    Attributes:
+        entity (str): entity to classify stance of
+        statement (str): statement to classify stance toward
+        input_text (str): text to classify stance of entity in
+    
+    Methods:
+        # TODO
     """
+
     def __init__(self,input_text,statement,entity):
         self.input_text = input_text
         self.statement = statement
@@ -82,22 +92,22 @@ class StanceClassification:
             self.input_text,
             self.stance))
     
-    def mask_entity(self:"StanceClassification", entity_mask:str)-> "StanceClassification":
+    def mask_entity(self, entity_mask:str)-> Self:
         """replaces the entity/actor within the entire prompt with a placeholder name like "Organisation X"
            Serves as a check for an actor bias
 
         Args:
-            entity_mask (str): a string that will replace the original/true detected actor
+            entity_mask (str): a string that will mask the original entity
         """
         self.masked_input_text = re.sub(self.entity, entity_mask, self.input_text)
         self.masked_entity = entity_mask
         return(self)
 
-    def summarize_irrelevant_stance_chain(self:"StanceClassification", llm, chat:bool,llm2=None, log=True) -> "StanceClassification":
+    def summarize_irrelevant_stance_chain(self, llm, chat:bool,llm2=None, log=True) -> Self:
         """prompt chain that:
-           1. summarises text (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object)
-           2. classifies whether the detected actor has a stance in the summary related to the statement, or not (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
-           3. if actor has a related stance: classify stance as opposition or support, not related stance: stance=irrelevant (saves stance as meta data and class attribute)
+           1. summarises text (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
+           2. classifies whether the detected actor has a stance in the summary related to the statement, or not (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
+           3. if actor has a related stance: classify stance as opposition or support, not related stance: stance=irrelevant (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
@@ -107,7 +117,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text, the irrelevance prompt text, and the stance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
         """
         if log:
             logger.info(f"Summarizing position of {self.entity}")
@@ -162,11 +172,11 @@ class StanceClassification:
         }
         return(self)
     
-    def summarize_v2_irrelevant_stance_chain(self:"StanceClassification", llm, chat:bool, llm2=None, log=True) -> "StanceClassification":
+    def summarize_v2_irrelevant_stance_chain(self, llm, chat:bool, llm2=None, log=True) -> Self:
         """prompt chain that:
-           1. summarises text in relation to the statement (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object)
-           2. classifies whether the detected actor has a stance in the summary related to the statement, or not (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
-           3. if actor has a related stance: classify stance as opposition or support, if no related stance: stance=irrelevant (saves stance as meta data and class attribute)
+           1. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
+           2. classifies whether the detected actor has a stance in the summary related to the statement, or not (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
+           3. if actor has a related stance: classify stance as opposition or support, if no related stance: stance=irrelevant (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
@@ -176,7 +186,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text, the irrelevance prompt text, and the stance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
         """
 
         if log:
@@ -233,9 +243,9 @@ class StanceClassification:
         }
         return(self)
     
-    def summarize_v2_chain(self:"StanceClassification", llm, chat:bool, llm2=None, log=True)-> "StanceClassification":
+    def summarize_v2_chain(self, llm, chat:bool, llm2=None, log=True)-> Self:
         """prompt chain that:
-           1. summarises text in relation to the statement (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object)
+           1. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
            2. prompts llm directly to classify the detected actor's stance based on the summary, stance class labels to select from: irrelevant, opposition, support
 
         Args:
@@ -246,7 +256,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The summary prompt text is stored in a dictionary value at the key ["llms"]["summary"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned.
         """
 
         if log:
@@ -283,21 +293,21 @@ class StanceClassification:
         }
         return(self)
     
-    def irrelevant_summarize_v2_chain(self, llm, chat, llm2=None, log=True):
+    def irrelevant_summarize_v2_chain(self, llm, chat, llm2=None, log=True) -> Self:
         """prompt chain that:
-           1. classifies whether the detected actor has a stance in the text related to the statement, or not (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
+           1. classifies whether the detected actor has a stance in the text related to the statement, or not (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
            2. if actor has a related stance: continue with 3., if not: stance=irrelevance (saved as a new class attribute called stance)
-           3. summarises text in relation to the statement and prompts in the same prompt text/step for the stance classification for either opposition or support (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object and the classified stance as a new class attribute called self.stance)
+           3. summarises text in relation to the statement and prompts in the same prompt text/step for the stance classification for either opposition or support
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
             llm: A guidance model backend from guidance.models
             chat (bool): whether llm it is a chat llm or not
-            llm2 (optional): A second guidance model backend from guidance.models. Defaults to None.
+            llm2 (optional): A second guidance model backend from guidance.models. Generates the summary and classifies the stance. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text, and the irrelevance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance and summary prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
         """
         if llm2 is None:
             llm2 = llm
@@ -353,11 +363,11 @@ class StanceClassification:
         }
         return(self)
     
-    def irrelevant_stance_chain(self:"StanceClassification", llm, chat:bool, llm2=None, log=True) -> "StanceClassification":
+    def irrelevant_stance_chain(self, llm, chat:bool, llm2=None, log=True) -> Self:
         """prompt chain that:
-           1. classifies whether the detected actor has a stance in the text related to the statement, or not (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
-           2. if actor has a related stance: classify stance as support or not support, if no related stance: stance=irrelevant (saves stance as meta data and class attribute)
-           3. if the stance is not support: the stance=opposition (saves stance as meta data and class attribute)
+           1. classifies whether the detected actor has a stance in the text related to the statement, or not (the irrelevance prompt text is stored in a dictionary value at the key ["llms"]["irrelevance"] in the "meta" attribute)
+           2. if actor has a related stance: classify stance as support or not support, if no related stance: stance=irrelevant (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
+           3. if the stance is not support: the stance=opposition (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
@@ -367,7 +377,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the irrelevance prompt text and the stance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned, e.g. meta["llms"]["stance"]
         """
         
         if log:
@@ -411,13 +421,13 @@ class StanceClassification:
         }
         return(self)
     
-    def nested_irrelevant_summary_explicit(self:"StanceClassification", llm, chat:bool, llm2=None, log=True)-> "StanceClassification":
+    def nested_irrelevant_summary_explicit(self, llm, chat:bool, llm2=None, log=True)-> Self:
         """prompt chain that:
            1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
-           2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
-           3. summarises text (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object)
-           4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance as meta data and class attribute)
-           5. prompts llm explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition (saves stance as meta data and class attribute)
+           2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
+           3. summarises text (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
+           4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
+           5. prompts llm explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
@@ -427,7 +437,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text, the irrelevance prompt text, and the stance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
         """
         if log:
             logger.info(f"Analyzing if {self.entity} has position")
@@ -517,13 +527,13 @@ class StanceClassification:
         }
         return(self)
     
-    def nested_irrelevant_summary_v2_explicit(self:"StanceClassification", llm, chat:bool, llm2=None, log=True)-> "StanceClassification":
+    def nested_irrelevant_summary_v2_explicit(self, llm, chat:bool, llm2=None, log=True)-> Self:
         """prompt chain that:
            1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
-           2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (creates and stores the entire prompt text sent to the llm in the parameter irrelevance, returned as meta data in the class object)
-           3. summarises text in relation to the statement (creates and stores the entire prompt text sent to the llm in the parameter summary, returned as meta data in the class object)
-           4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance as meta data and class attribute)
-           5. prompts llm explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition (saves stance as meta data and class attribute)
+           2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
+           3. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
+           4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
+           5. prompts llm explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
 
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
@@ -533,7 +543,7 @@ class StanceClassification:
             log (bool, optional): To log or not. Defaults to True.
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. (meta is a dictionary containing the summary prompt text, the irrelevance prompt text, and the stance prompt text)
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in the "meta" attribute of the returned StanceClassification object: e.g. meta["llms"]["irrelevance"].
         """
         if log:
             logger.info(f"Analyzing if {self.entity} has position")

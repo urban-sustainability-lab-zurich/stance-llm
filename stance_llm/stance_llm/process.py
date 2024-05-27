@@ -1,6 +1,7 @@
 import os
 import time
 from datetime import date
+from typing_extensions import Self
 
 import srsly
 from tqdm import tqdm
@@ -10,7 +11,7 @@ from wonderwords import RandomWord
 
 from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_llm_chains
 
-def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> "StanceClassification":
+def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> Self:
     """Detect stance of an entity in a dictionary input
 
     Expects a dictionary item with a "text" key containing text to classify and
@@ -62,13 +63,13 @@ def make_export_folder(export_folder:str,
                           model_used,
                           chain_used:str,
                           run_alias:str)-> str:
-    """creates folder to save classifications, meta data and metrics of the current execution
+    """creates folder of format <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
         export_folder: directory to which all outputs are saved
         model_used: llm model name
         chain_used: prompt chain (short name)
-        run_alias: a unique name of the current execution, consists of two randomly combined words
+        run_alias: the unique name of the current execution (consists of two randomly combined words)
     """
     today = str(date.today())
     folder_path = os.path.join(export_folder,chain_used,model_used,today,run_alias)
@@ -117,6 +118,21 @@ def process(
     """serves like a main function that
      - sends data together with constructed prompts to the llm (detect_stance())
      - saves classifications together with prompt texts (get_prompt_texts_from_meta() & save_classifications_jsonl())
+    
+     # TODO
+    Args:
+        egs: contains classifications consisting of text, statement, stance_true, etc.
+        llm: A guidance model backend from guidance.models
+        export_folder: Folder for evaluation output.
+        model_used: name of the currently employed llm
+        chain_used: name of propt chain of the current execution
+        true_stance_key: contains true stance. Defaults to None.
+        wait_time: Wait time between two prompts sent to the llm. Defaults to 5.
+        id_key = id of the instance. Defaults to None.
+
+    Return:
+        Returns the classifications (with text, statement, etc.) together with the extracted predicted stance ("pred_stance") from out of the StanceClassification class attribute "stance" as well as the prompt texts from the attribute "meta"
+    
     """
     pred_egs = []
     for eg in tqdm(egs):
@@ -150,7 +166,7 @@ def evaluate(egs_with_preds):
     """creates and outputs evaluation metrics: for each stance class: precision, recall, f1, accuracy, and macro (precision, recall, F1, accuracy) and micro (precision, recall, F1, accuracy)
 
     Args:
-        egs_with_preds: list/dictionary with classifications which contain the stance predicted by the llm and the true stance
+        egs_with_preds: list of dictionaries containing predicted stances at a key "stance_pred" and true stances under at key "stance_true"
     """
     y_true = []
     y_pred = []
@@ -179,7 +195,7 @@ def save_evaluations_json(export_folder:str,
         eval_metrics: dictionary with evaluation metrics per stance class and macro and average (for each: precision ,recall, F1, accuracy)
         chain_used: prompt chain (short name)
         model_used: llm model name
-        run_alias: a unique name of the current execution, consists of two randomly combined words
+        run_alias: the unique name of the current execution (consists of two randomly combined words)
     """
     export_folder_path = make_export_folder(export_folder=export_folder,
                                             chain_used=chain_used,
@@ -198,14 +214,14 @@ def save_run_meta_info_json(export_folder:str,
                         model_used:str,
                         run_alias:str,
                         entity_mask:str) -> None:
-    """_summary_
+    """saves meta information in json format
 
     Args:
         export_folder: directory to which all outputs are saved
         chain_used: prompt chain (short name)
         model_used: llm model name
-        run_alias: a unique name of the current execution, consists of two randomly combined words
-        entity_mask: string which will replace the original entity in the text to rule out any entity bias by the llm
+        run_alias: the unique name of the current execution (consists of two randomly combined words)
+        entity_mask: string used to mask the original entity string in the classified text, if any is given
 
     """
     export_folder_path = make_export_folder(export_folder=export_folder,
@@ -234,16 +250,16 @@ def save_classifications_jsonl(export_folder:str,
                                run_alias:str, 
                                id_key = None,
                                true_stance_key=None) -> None:
-    """_summary_
+    """saves texts, org, statement, ... with their classification and meta information in json
 
     Args:
         export_folder: directory to which all outputs are saved
-        egs_with_classifications (_type_): _description_
+        egs_with_classifications (dict): contains "text", "org_text", "statement", "stance_classification" by the llm, "meta" information
         model_used: llm model name
         chain_used: prompt chain (short name)
-        run_alias: a unique name of the current execution, consists of two randomly combined words
-        id_key (optional): _description_. Defaults to None.
-        true_stance_key (optional): _description_. Defaults to None.
+        run_alias: the unique name of the current execution (consists of two randomly combined words)
+        id_key (optional): id of the instance. Defaults to None.
+        true_stance_key (optional): contains true stance. Defaults to None.
     """
     to_export = []
     for eg in egs_with_classifications:
@@ -314,6 +330,7 @@ def process_evaluate(egs,
         model_used: String giving label for model backend
         chain_used: An implemented llm chain. See stance_llm.base.get_registered_chains for list
         chat (bool, optional): Should a chat model variant be used? Defaults to True.
+        wait_time: Wait time between two prompts sent to the llm. Defaults to 5.
         export_folder (str, optional): Folder for evaluation output. Defaults to "./evaluations".
     """
     preds = process(
