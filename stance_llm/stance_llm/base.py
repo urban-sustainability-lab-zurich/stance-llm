@@ -16,6 +16,8 @@ REGISTERED_LLM_CHAINS = {
 
 ALLOWED_DUAL_LLM_CHAINS = ["is2"]
 
+CONSTRAINED_GRAMMAR_CHAINS = ["s2","is2","nise","nis2e"]
+
 IRRELEVANCE_ANSWERS = {
     "irrelevant": 'Bezieht keine Stellung',
     "stance": 'Bezieht Stellung'

@@ -158,6 +158,13 @@ def process(
                 true_stance_key=true_stance_key,
                 id_key=id_key)
         time.sleep(wait_time)
+    if stream_out:
+        save_run_meta_info_json(
+            export_folder=export_folder, 
+            model_used=model_used,
+            chain_used=chain_used,
+            run_alias=run_alias,
+            entity_mask = entity_mask)
     logger.info(f"finished run {run_alias}")
     return(pred_egs)
 
@@ -187,10 +194,10 @@ def save_evaluations_json(export_folder:str,
                           chain_used:str,
                           model_used:str,
                           run_alias:str) -> None:
-    """saves metrics into metrics.jsonl file
+    """serializes metrics to metrics.json file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
-        export_folder: directory to which all outputs are saved
+        export_folder: directory target for serialization
         eval_metrics: dictionary with evaluation metrics per stance class and macro and average (for each: precision ,recall, F1, accuracy)
         chain_used: prompt chain (short name)
         model_used: llm model name
@@ -205,7 +212,7 @@ def save_evaluations_json(export_folder:str,
         "metrics": eval_metrics
     }
     logger.info(f"Saving evaluation report to {str(export_folder_path)}")
-    srsly.write_json(os.path.join(export_folder_path,"metrics.jsonl"),
+    srsly.write_json(os.path.join(export_folder_path,"metrics.json"),
                      out_dict)
     
 def save_run_meta_info_json(export_folder:str,
@@ -213,10 +220,10 @@ def save_run_meta_info_json(export_folder:str,
                         model_used:str,
                         run_alias:str,
                         entity_mask:str) -> None:
-    """saves meta information in json format
+    """serializes run meta information to meta.json file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
-        export_folder: directory to which all outputs are saved
+        export_folder: directory target for serialization
         chain_used: prompt chain (short name)
         model_used: llm model name
         run_alias: name of the classification run to be saved
@@ -239,7 +246,7 @@ def save_run_meta_info_json(export_folder:str,
         "entity_masking": entity_masking
     }
     logger.info(f"Saving run meta-information to {str(export_folder_path)}")
-    srsly.write_json(os.path.join(export_folder_path,"meta.jsonl"),
+    srsly.write_json(os.path.join(export_folder_path,"meta.json"),
                      out_dict)
 
 def save_classifications_jsonl(export_folder:str,
@@ -249,10 +256,10 @@ def save_classifications_jsonl(export_folder:str,
                                run_alias:str, 
                                id_key = None,
                                true_stance_key=None) -> None:
-    """serializes a list of stance classifications to JSONL
+    """serializes a list of stance classifications to JSONL in a classifications.jsonl file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
-        export_folder: directory to which all outputs are saved
+        export_folder: directory target for serialization
         egs_with_classifications (list): List of stance classifications
         model_used: llm model name
         chain_used: prompt chain (short name)
