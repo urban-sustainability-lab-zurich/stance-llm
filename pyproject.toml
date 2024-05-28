@@ -1,9 +1,11 @@
 [tool.poetry]
 name = "stance-llm"
-version = "0.1.0"
+version = "0.1.2"
 description = "Classify stances of entities related to a statement in German text using large language models through guidance-llm"
 authors = ["Mario Angst <mario.angst@uzh.ch>", "Viviane Walker <viviane.walker@uzh.ch>"]
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/urban-sustainability-lab-zurich/stance-llm"
 
 [tool.poetry.dependencies]
 python = "^3.10"
