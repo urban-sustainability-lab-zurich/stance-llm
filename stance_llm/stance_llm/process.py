@@ -1,6 +1,7 @@
 import os
 import time
 from datetime import date
+from typing_extensions import Self
 
 import srsly
 from tqdm import tqdm
@@ -8,9 +9,9 @@ from sklearn.metrics import classification_report
 from loguru import logger
 from wonderwords import RandomWord
 
-from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_lm_chains
+from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_llm_chains
 
-def detect_stance(eg, lm, chain_label: str, lm2=None, chat=True, entity_mask=None):
+def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> Self:
     """Detect stance of an entity in a dictionary input
 
     Expects a dictionary item with a "text" key containing text to classify and
@@ -20,16 +21,19 @@ def detect_stance(eg, lm, chain_label: str, lm2=None, chat=True, entity_mask=Non
 
     Args:
         eg: A dictionary item with a "text" key containing text to classify and a "org_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance for
-        lm: A guidance model backend from guidance.models
-        chain_label: A implemented lm chain. See stance_llm.base.get_registered_chains for list
+        llm: A guidance model backend from guidance.models
+        chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
+    
+    Returns:
+        A StanceClassification class object with a stance and meta data
     """
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
         raise NameError('Chain label is not registered')
-    if lm2 is not None:
-        allowed_dual_lm_labels = get_allowed_dual_lm_chains()
-        if chain_label not in allowed_dual_lm_labels:
-            raise NameError(f"Prompt chain is not set up for using two lm backends. Allowed are {allowed_dual_lm_labels}")
+    if llm2 is not None:
+        allowed_dual_llm_labels = get_allowed_dual_llm_chains()
+        if chain_label not in allowed_dual_llm_labels:
+            raise NameError(f"Prompt chain is not set up for using two llm backends. Allowed are {allowed_dual_llm_labels}")
     entity = eg["org_text"]
     text = eg["text"]
     statement = eg["statement"]
@@ -40,25 +44,33 @@ def detect_stance(eg, lm, chain_label: str, lm2=None, chat=True, entity_mask=Non
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
     if chain_label == "sis":
-        classification = task.summarize_irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "is":
-        classification = task.irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "nise":
-        classification = task.nested_irrelevant_summary_explicit(lm=lm,chat = chat,lm2=lm2)
+        classification = task.nested_irrelevant_summary_explicit(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "s2is":
-        classification = task.summarize_v2_irrelevant_stance_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_v2_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "s2":
-        classification = task.summarize_v2_chain(lm=lm,chat = chat,lm2=lm2)
+        classification = task.summarize_v2_chain(llm=llm,chat = chat,llm2=llm2)
     if chain_label == "is2":
-        classification = task.irrelevant_summarize_v2_chain(lm=lm, chat=chat,lm2=lm2)
+        classification = task.irrelevant_summarize_v2_chain(llm=llm, chat=chat,llm2=llm2)
     if chain_label == "nis2e":
-        classification = task.nested_irrelevant_summary_v2_explicit(lm=lm,chat = chat,lm2=lm2)
+        classification = task.nested_irrelevant_summary_v2_explicit(llm=llm,chat = chat,llm2=llm2)
     return(classification)
 
-def make_export_folder(export_folder,
+def make_export_folder(export_folder:str,
                           model_used,
-                          chain_used,
-                          run_alias):
+                          chain_used:str,
+                          run_alias:str)-> str:
+    """creates folder of format <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
+
+    Args:
+        export_folder: directory to which all outputs are saved
+        model_used: llm model name
+        chain_used: prompt chain (short name)
+        run_alias: name of the classification run to be saved
+    """
     today = str(date.today())
     folder_path = os.path.join(export_folder,chain_used,model_used,today,run_alias)
     if os.path.exists(folder_path):
@@ -68,12 +80,20 @@ def make_export_folder(export_folder,
         os.makedirs(folder_path)
         return(folder_path)
 
-def get_prompt_texts_from_meta(classification: StanceClassification):
-    if "lms" not in classification.meta:
+def get_prompt_texts_from_meta(classification: StanceClassification) -> dict:
+    """pulls prompt texts from meta data and returns it
+
+    Args:
+        classification: StanceClassification class object, with predictions ideally
+
+    Returns:
+        dict: gets all the meta information - created during the stance classification with a prompt chain - and returns it as a string (instead of a nested dictionary)
+    """
+    if "llms" not in classification.meta:
         return({})
     else:
         components = {}
-        chain_components = classification.meta["lms"]
+        chain_components = classification.meta["llms"]
         for component_key in chain_components.keys():
             components[component_key] = {"prompt_text":str(chain_components[component_key])}
     return(components)
@@ -81,26 +101,45 @@ def get_prompt_texts_from_meta(classification: StanceClassification):
 
 def process(
     egs,
-    lm,
-    export_folder,
-    model_used,
-    chain_used,
+    llm,
+    export_folder:str,
+    model_used:str,
+    chain_used:str,
     true_stance_key=None,
     wait_time=5,
     stream_out=True,
     id_key = "id",
     chat=True,
-    lm2=None,
+    llm2=None,
     entity_mask=None):
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
     logger.info(f"Starting run {run_alias}")
+    """serves like a main function that
+     - sends data together with constructed prompts to the llm (detect_stance())
+     - assigns run alias (specific name) and saves classifications together with prompt texts (get_prompt_texts_from_meta() & save_classifications_jsonl())
+    
+     # TODO
+    Args:
+        egs: contains classifications consisting of text, statement, stance_true, etc.
+        llm: A guidance model backend from guidance.models
+        export_folder: Folder for evaluation output.
+        model_used: name of the currently employed llm
+        chain_used: name of propt chain of the current execution
+        true_stance_key: contains true stance. Defaults to None.
+        wait_time: Wait time between two prompts sent to the llm. Defaults to 5.
+        id_key = id of the instance. Defaults to None.
+
+    Return:
+        Returns the classifications (with text, statement, etc.) together with the extracted predicted stance ("pred_stance") from out of the StanceClassification class attribute "stance" as well as the prompt texts from the attribute "meta"
+    
+    """
     pred_egs = []
     for eg in tqdm(egs):
-        eg["stance_classification"] = detect_stance(eg,lm=lm,
+        eg["stance_classification"] = detect_stance(eg,llm=llm,
                                                     chain_label=chain_used,
                                                     chat=chat,
-                                                    lm2=lm2,
+                                                    llm2=llm2,
                                                     entity_mask=entity_mask)
         eg["run_alias"] = run_alias
         eg["stance_pred"] = eg["stance_classification"].stance
@@ -124,6 +163,11 @@ def process(
     return(pred_egs)
 
 def evaluate(egs_with_preds):
+    """creates and outputs evaluation metrics: for each stance class: precision, recall, f1, accuracy, and macro (precision, recall, F1, accuracy) and micro (precision, recall, F1, accuracy)
+
+    Args:
+        egs_with_preds: list of dictionaries containing predicted stances at a key "stance_pred" and true stances under at key "stance_true"
+    """
     y_true = []
     y_pred = []
     for eg in egs_with_preds:
@@ -139,11 +183,20 @@ def evaluate(egs_with_preds):
     logger.info(f"----------- Evaluation metrics ------------ \n {eval_metrics} \n ------------------")
     return(eval_metrics)
 
-def save_evaluations_json(export_folder,
+def save_evaluations_json(export_folder:str,
                           eval_metrics,
-                          chain_used,
-                          model_used,
-                          run_alias):
+                          chain_used:str,
+                          model_used:str,
+                          run_alias:str) -> None:
+    """saves metrics into metrics.jsonl file
+
+    Args:
+        export_folder: directory to which all outputs are saved
+        eval_metrics: dictionary with evaluation metrics per stance class and macro and average (for each: precision ,recall, F1, accuracy)
+        chain_used: prompt chain (short name)
+        model_used: llm model name
+        run_alias: name of the classification run to be saved
+    """
     export_folder_path = make_export_folder(export_folder=export_folder,
                                             chain_used=chain_used,
                                             model_used=model_used,
@@ -156,11 +209,21 @@ def save_evaluations_json(export_folder,
     srsly.write_json(os.path.join(export_folder_path,"metrics.jsonl"),
                      out_dict)
     
-def save_run_meta_info_json(export_folder,
-                        chain_used,
-                        model_used,
-                        run_alias,
-                        entity_mask):
+def save_run_meta_info_json(export_folder:str,
+                        chain_used:str,
+                        model_used:str,
+                        run_alias:str,
+                        entity_mask:str) -> None:
+    """saves meta information in json format
+
+    Args:
+        export_folder: directory to which all outputs are saved
+        chain_used: prompt chain (short name)
+        model_used: llm model name
+        run_alias: name of the classification run to be saved
+        entity_mask: string used to mask the original entity string in the classified text, if any is given
+
+    """
     export_folder_path = make_export_folder(export_folder=export_folder,
                                             chain_used=chain_used,
                                             model_used=model_used,
@@ -180,13 +243,24 @@ def save_run_meta_info_json(export_folder,
     srsly.write_json(os.path.join(export_folder_path,"meta.jsonl"),
                      out_dict)
 
-def save_classifications_jsonl(export_folder,
+def save_classifications_jsonl(export_folder:str,
                                egs_with_classifications, 
-                               model_used, 
-                               chain_used,
-                               run_alias, 
+                               model_used:str, 
+                               chain_used:str,
+                               run_alias:str, 
                                id_key = None,
-                               true_stance_key=None):
+                               true_stance_key=None) -> None:
+    """serializes a list of stance classifications to JSONL
+
+    Args:
+        export_folder: directory to which all outputs are saved
+        egs_with_classifications (list): List of stance classifications
+        model_used: llm model name
+        chain_used: prompt chain (short name)
+        run_alias: name of the classification run to be saved
+        id_key (optional): id of the instance. Defaults to None.
+        true_stance_key (optional): contains true stance. Defaults to None.
+    """
     to_export = []
     for eg in egs_with_classifications:
         if "stance_classification" in eg.keys():
@@ -212,7 +286,7 @@ def save_classifications_jsonl(export_folder,
     filepath = os.path.join(export_subfolder,"classifications.jsonl")
     srsly.write_jsonl(filepath,to_export)
 
-def prepare_prodigy_egs(prodigy_egs, remove_flagged = True):
+def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
     """Helper to convert exports from prodigy to simpler list to pass to stance annotations tasks.
 
     Args:
@@ -240,27 +314,28 @@ def prepare_prodigy_egs(prodigy_egs, remove_flagged = True):
     return(egs)
 
 def process_evaluate(egs,
-               lm,
-               model_used,
-               chain_used,
+               llm,
+               model_used:str,
+               chain_used:str,
                chat=True,
                wait_time=0.5,
                export_folder="./evaluations",
-               lm2=None,
+               llm2=None,
                entity_mask=None):
-    """Process a list of examples to via a lm backend, stream out results, evaluate against true values and save evaluations
+    """Process a list of examples to via a llm backend, stream out results, evaluate against true values and save evaluations
 
     Args:
         egs: A list of dictionary items with a "text" key containing text to classify, a "org_text" key containing a string for the organizational entity to predict stance for and a "stance_true" key containing a true stance to evaluate against
-        lm: A guidance model backend from guidance.models
+        llm: A guidance model backend from guidance.models
         model_used: String giving label for model backend
-        chain_used: An implemented lm chain. See stance_llm.base.get_registered_chains for list
+        chain_used: An implemented llm chain. See stance_llm.base.get_registered_chains for list
         chat (bool, optional): Should a chat model variant be used? Defaults to True.
+        wait_time (int): Wait time (in seconds) between two prompts sent to the llm. Defaults to 5.
         export_folder (str, optional): Folder for evaluation output. Defaults to "./evaluations".
     """
     preds = process(
         egs = egs,
-        lm=lm,
+        llm=llm,
         export_folder=export_folder,
         model_used=model_used,
         chain_used=chain_used,
@@ -268,7 +343,7 @@ def process_evaluate(egs,
         true_stance_key="stance_true",
         stream_out=True,
         chat=chat,
-        lm2=lm2,
+        llm2=llm2,
         entity_mask=entity_mask
         )
     eval_metrics = evaluate(preds)
