@@ -66,7 +66,7 @@ def get_allowed_dual_llm_chains():
     return(ALLOWED_DUAL_LLM_CHAINS)
 
 class StanceClassification:
-    """Class used for classifications of stances by a specified entity in a text regarding a statement through an LLM.
+    """Class used for LLM-based classifications of stances by a specified entity in a text regarding a statement.
     
     Attributes:
         entity (str): entity to classify stance of
