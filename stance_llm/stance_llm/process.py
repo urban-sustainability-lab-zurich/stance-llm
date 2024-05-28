@@ -14,13 +14,12 @@ from stance_llm.base import StanceClassification, get_registered_chains, get_all
 def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> Self:
     """Detect stance of an entity in a dictionary input
 
-    Expects a dictionary item with a "text" key containing text to classify and
-    a "meta" key containing a dictionary with at least a key "org_text" containing
-    a string for the organizational entity to detect stance for and a key "statement"
-    containing the statement to evaluate the stance for
+    Expects a dictionary item with a "text" key containing text to classify, a key "org_text" 
+    containing a string for the organizational entity to detect stance for and a key "statement"
+    containing the statement to evaluate the stance against
 
     Args:
-        eg: A dictionary item with a "text" key containing text to classify and a "org_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance for
+        eg: A dictionary item with a "text" key containing text to classify and a "org_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
         llm: A guidance model backend from guidance.models
         chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
     
@@ -108,7 +107,7 @@ def process(
     true_stance_key=None,
     wait_time=5,
     stream_out=True,
-    id_key = "id",
+    id_key = None,
     chat=True,
     llm2=None,
     entity_mask=None):
@@ -121,7 +120,7 @@ def process(
     
      # TODO
     Args:
-        egs: contains classifications consisting of text, statement, stance_true, etc.
+        egs: list of examples to classify as dictionaries with at least keys "text","org_text","statement" (see detect_stance())
         llm: A guidance model backend from guidance.models
         export_folder: Folder for evaluation output.
         model_used: name of the currently employed llm
@@ -258,7 +257,7 @@ def save_classifications_jsonl(export_folder:str,
         model_used: llm model name
         chain_used: prompt chain (short name)
         run_alias: name of the classification run to be saved
-        id_key (optional): id of the instance. Defaults to None.
+        id_key (optional): id of the example. Defaults to None.
         true_stance_key (optional): contains true stance. Defaults to None.
     """
     to_export = []

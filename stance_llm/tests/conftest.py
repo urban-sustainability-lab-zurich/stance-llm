@@ -31,7 +31,7 @@ def gpt2_trf():
     gpt2_trf = models.Transformers('gpt2')
     return(gpt2_trf)
 
-# RUN STANCE DETECTIONS --------------
+# RUN SINGLE STANCE DETECTIONS --------------
 
 # non-masked
 
