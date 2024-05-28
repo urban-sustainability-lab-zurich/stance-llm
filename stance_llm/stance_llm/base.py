@@ -16,7 +16,7 @@ REGISTERED_LLM_CHAINS = {
 
 ALLOWED_DUAL_LLM_CHAINS = ["is2"]
 
-CONSTRAINED_GRAMMAR_CHAINS = ["s2","is2","nise","nis2e"]
+CONSTRAINED_GRAMMAR_CHAINS = ["s2","is2"]
 
 IRRELEVANCE_ANSWERS = {
     "irrelevant": 'Bezieht keine Stellung',
@@ -425,7 +425,7 @@ class StanceClassification:
     
     def nested_irrelevant_summary_explicit(self, llm, chat:bool, llm2=None, log=True)-> Self:
         """prompt chain that:
-           1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
+           1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance_general"])
            2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
            3. summarises text (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
            4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
@@ -448,16 +448,16 @@ class StanceClassification:
                                                           entity=self.masked_entity)
         if chat:
             with user():
-                irrelevance = llm + general_prompt
+                irrelevance_general = llm + general_prompt
             with assistant():
-                irrelevance = irrelevance + select(["Ja", "Nein"], name='answer')
+                irrelevance_general = irrelevance_general + select(list(IRRELEVANCE_ANSWERS2.values()), name='answer_general')
         if not chat:
-            irrelevance = llm + general_prompt + select(["Ja", "Nein"], name='answer')
-        if irrelevance["answer"] == "Nein":
+            irrelevance_general = llm + general_prompt + select(list(IRRELEVANCE_ANSWERS2.values()), name='answer_general')
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
             self.stance = "irrelevant"
             stance = None
             summary = None
-        if irrelevance["answer"] == "Ja":
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
             if log:
                 logger.info(f"Analyzing if {self.entity} supports statement {self.statement}")
                 logger.info("Checking irrelevance...")
@@ -522,8 +522,9 @@ class StanceClassification:
             logger.info(f"classified as {self.stance}")
         self.meta = {
             "llms": {
-            "summary":summary,
+            "irrelevance_general":irrelevance_general,
             "irrelevance":irrelevance,
+            "summary":summary,
             "stance":stance
             }
         }
@@ -531,7 +532,7 @@ class StanceClassification:
     
     def nested_irrelevant_summary_v2_explicit(self, llm, chat:bool, llm2=None, log=True)-> Self:
         """prompt chain that:
-           1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
+           1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance_general"])
            2. checks whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
            3. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
            4. prompts llm explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
@@ -554,16 +555,16 @@ class StanceClassification:
                                                           entity=self.masked_entity)
         if chat:
             with user():
-                irrelevance = llm + general_prompt
+                irrelevance_general = llm + general_prompt
             with assistant():
-                irrelevance = irrelevance + select(["Ja", "Nein"], name='answer')
+                irrelevance_general = irrelevance_general + select(list(IRRELEVANCE_ANSWERS2.values()), name='answer_general')
         if not chat:
-            irrelevance = llm + general_prompt + select(["Ja", "Nein"], name='answer')
-        if irrelevance["answer"] == "Nein":
+            irrelevance_general = llm + general_prompt + select(list(IRRELEVANCE_ANSWERS2.values()), name='answer_general')
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
             self.stance = "irrelevant"
             stance = None
             summary = None
-        if irrelevance["answer"] == "Ja":
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
             if log:
                 logger.info(f"Analyzing if {self.entity} supports statement {self.statement}")
                 logger.info("Checking irrelevance...")
@@ -628,8 +629,9 @@ class StanceClassification:
             logger.info(f"classified as {self.stance}")
         self.meta = {
             "llms": {
-            "summary":summary,
+            "irrelevance_general":irrelevance_general,
             "irrelevance":irrelevance,
+            "summary":summary,
             "stance":stance
             }
         }
