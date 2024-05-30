@@ -1,6 +1,6 @@
 # stance-llm: German LLM prompts for stance detection
 
-Classify stances of entities related to a statement in German text using large language models (LLMS). 
+Classify stances of entities related to a statement in German text using large language models (LLMs). 
 
 stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
 
@@ -35,7 +35,7 @@ Thus we provide a way to easily leverage LLMs for stance classification in Germa
 
 We generally believe that the hype around LLMs for many NLP tasks is overblown (for many reasons).
 
-However, the NLP task of zero-shot classifying the stance of an entity toward a statement is incredibly general and hard to satisfyingly solve with current tools. 
+However, the NLP task of zero-shot classifying the stance of an entity toward any sort of statement is incredibly general and hard to satisfyingly solve with current tools. 
 For this general, hard task, the use of LLMs, as task-unspecific, general models seemed to have a use case to us.
 
 ## Installation
@@ -71,29 +71,29 @@ To use the data with stance-llm, turn it into a list of dictionaries of the form
 
 Optionally, per item in the list of dictionaries:
 - if you want stance-llm to also evaluate its classifications against test data, you may provide a true stance as the value of a "stance_true" key.
-- you may supply an "id" key for your examples, which is serialized to enable you to identify your examples
+- you may supply an "id" key for your examples, which is serialized when using `stance_llm.process.process` or `stance_llm.process.process_evaluate` to enable you to identify your examples
 
 ### Choose your LLM
 
 stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI) or running locally. 
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers):
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers), which does **not** use constrained grammar:
 
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
-| is           | X                      | X                     |
-| sis          | X                      | X                     |
-| nise         | X                      | X                     |
-| s2           | ✓                      | X                     |
-| is2          | ✓                      | ✓                     |
-| s2is         | X                      | X                     |
-| nis2e        | X                      | X                     |
+| [is](#is)           | X                      | X                     |
+| [sis](#sis)          | X                      | X                     |
+| [nise](#nise)         | X                      | X                     |
+| [s2](#s2)           | ✓                      | X                     |
+| [is2](#is2)          | ✓                      | ✓                     |
+| [s2is](#s2is)         | X                      | X                     |
+| [nis2e](#nis2e)        | X                      | X                     |
 
 
 ## Get started
 
-Load an LLM - here for example, we mightuse [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
+Load an LLM - here for example, we might use [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
 
 > ⚠️ This downloads a number of large files and you'll probably need a GPU and set up your system to utilize it
 
