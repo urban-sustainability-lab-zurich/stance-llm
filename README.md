@@ -1,13 +1,33 @@
 # stance-llm: German LLM prompts for stance detection
 
-Classify stances of entities related to a statement in German text using large language models through guidance-llm. The package offers several prompt chains to choose from (explained below). Is built on [guidance-llm](https://github.com/guidance-ai/guidance/tree/main) which is an effective programming paradigm allowing to control the structure of LLMs outputs.
+Classify stances of entities related to a statement in German text using large language models through guidance-llm. 
 
-**Stance Detection: Task Definition**
+The package offers several prompt chains to choose from (see [impemented prompt chains](#implemented-prompt-chains)). For its basic functionality, you feed it a list of dictionaries in the form 
 
-Stance detection is the identification of attitudes expressed in a text towards a specific topic, organisation, or person. Opposition, support, in-favour, against, irrelevant, none, neutral, are all previously used stance classes (Mohammad et al., 2016).
+```
+[{"text":<German-text-to-analyze>, 
+"org_text": <entity string to classify stance for>, 
+"statement": <the (German) statement to evaluate stance of entity toward>}`]
+```
 
+for example
 
-### Overview: Implemented prompt chains
+```
+[{"text":"Emily will LLMs in den Papageienzoo sperren und streng beaufsichtigen. Das ist gut so.", 
+"org_text": <Emily>, 
+"statement": <LLMs sollten in den Papageienzoo gesperrt werden.>}`]
+```
+
+And you get a list of `StanceClassification` objects back containing 
+- your original data
+- a predicted stance (here likely "support", if all went well) by the LLM, currently one of "support","opposition" or "irrelevant"
+- meta-information on the the prompts and generated text by the LLM during processing
+
+stance-llm is built on [guidance-llm](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
+
+Beyond this, stance-llm allows for entity masking, serializing and streaming out output and evaluating against true stances.
+
+### Implemented prompt chains
 
 #### is
 1. prompts the LLM to check, if there is a stance in the text related to the statement, or not
