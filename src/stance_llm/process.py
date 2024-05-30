@@ -15,11 +15,11 @@ def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_ma
     """Detect stance of an entity in a dictionary input
 
     Expects a dictionary item with a "text" key containing text to classify, a key "ent_text" 
-    containing a string for the organizational entity to detect stance for and a key "statement"
+    containing a string matching the entity to detect stance for and a key "statement"
     containing the statement to evaluate the stance against
 
     Args:
-        eg: A dictionary item with a "text" key containing text to classify and a "ent_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
+        eg: A dictionary item with a "text" key containing text to classify and a "ent_text" key containing a string matching the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
         llm: A guidance model backend from guidance.models
         chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
     

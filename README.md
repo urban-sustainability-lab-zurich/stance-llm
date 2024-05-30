@@ -77,8 +77,7 @@ Optionally, per item in the list of dictionaries:
 
 stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI) or running locally. 
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers), which does **not** use constrained grammar:
-
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers), which does **not** use constrained grammar. See table below.
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
@@ -93,7 +92,7 @@ stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance
 
 ## Get started
 
-Load an LLM - here for example, we might use [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
+Load an LLM - for example, we might use [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
 
 > ⚠️ This downloads a number of large files and you'll probably need a GPU and set up your system to utilize it
 
@@ -188,6 +187,16 @@ process(
     entity_mask="Organisation X" #here is the mask
     )
 ```
+
+### Chat models
+
+Some LLMs loadable as guidance models are "chat" models requiring a different form of prompting.
+All prompt chains in stance-llm are implemented in both chat and non-chat versions. You can choose which version to use by specifying the boolean (True/ False) `chat` option to its main functions (`detect_stance`, `process` and `process_evaluate`). It defaults to "True".
+Generally, you should get a warning (via guidance) if you use a chat version with a non-chat LLM model.
+
+### Use of multiple LLMs in one prompt chain
+
+Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, eg. a locally hosted model (like Disco LM) the classification part and a model accessed through an API for the irrelevance check part (like GPT-3.5). Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
 
 ## Implemented prompt chains
 
