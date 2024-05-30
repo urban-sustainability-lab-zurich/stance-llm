@@ -9,12 +9,19 @@ from sklearn.metrics import classification_report
 from loguru import logger
 from wonderwords import RandomWord
 
-from stance_llm.base import StanceClassification, get_registered_chains, get_allowed_dual_llm_chains
+from stance_llm.base import (
+    StanceClassification,
+    get_registered_chains,
+    get_allowed_dual_llm_chains,
+)
 
-def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> Self:
+
+def detect_stance(
+    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None
+) -> Self:
     """Detect stance of an entity in a dictionary input
 
-    Expects a dictionary item with a "text" key containing text to classify, a key "ent_text" 
+    Expects a dictionary item with a "text" key containing text to classify, a key "ent_text"
     containing a string matching the entity to detect stance for and a key "statement"
     containing the statement to evaluate the stance against
 
@@ -22,46 +29,55 @@ def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_ma
         eg: A dictionary item with a "text" key containing text to classify and a "ent_text" key containing a string matching the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
         llm: A guidance model backend from guidance.models
         chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
-    
+
     Returns:
         A StanceClassification class object with a stance and meta data
     """
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
-        raise NameError('Chain label is not registered')
+        raise NameError("Chain label is not registered")
     if llm2 is not None:
         allowed_dual_llm_labels = get_allowed_dual_llm_chains()
         if chain_label not in allowed_dual_llm_labels:
-            raise NameError(f"Prompt chain is not set up for using two llm backends. Allowed are {allowed_dual_llm_labels}")
+            raise NameError(
+                f"Prompt chain is not set up for using two llm backends. Allowed are {allowed_dual_llm_labels}"
+            )
     entity = eg["ent_text"]
     text = eg["text"]
     statement = eg["statement"]
-    task = StanceClassification(
-        input_text=text,
-        statement=statement,
-        entity=entity)
+    task = StanceClassification(input_text=text, statement=statement, entity=entity)
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
     if chain_label == "sis":
-        classification = task.summarize_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
+        classification = task.summarize_irrelevant_stance_chain(
+            llm=llm, chat=chat, llm2=llm2
+        )
     if chain_label == "is":
-        classification = task.irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
+        classification = task.irrelevant_stance_chain(llm=llm, chat=chat, llm2=llm2)
     if chain_label == "nise":
-        classification = task.nested_irrelevant_summary_explicit(llm=llm,chat = chat,llm2=llm2)
+        classification = task.nested_irrelevant_summary_explicit(
+            llm=llm, chat=chat, llm2=llm2
+        )
     if chain_label == "s2is":
-        classification = task.summarize_v2_irrelevant_stance_chain(llm=llm,chat = chat,llm2=llm2)
+        classification = task.summarize_v2_irrelevant_stance_chain(
+            llm=llm, chat=chat, llm2=llm2
+        )
     if chain_label == "s2":
-        classification = task.summarize_v2_chain(llm=llm,chat = chat,llm2=llm2)
+        classification = task.summarize_v2_chain(llm=llm, chat=chat, llm2=llm2)
     if chain_label == "is2":
-        classification = task.irrelevant_summarize_v2_chain(llm=llm, chat=chat,llm2=llm2)
+        classification = task.irrelevant_summarize_v2_chain(
+            llm=llm, chat=chat, llm2=llm2
+        )
     if chain_label == "nis2e":
-        classification = task.nested_irrelevant_summary_v2_explicit(llm=llm,chat = chat,llm2=llm2)
-    return(classification)
+        classification = task.nested_irrelevant_summary_v2_explicit(
+            llm=llm, chat=chat, llm2=llm2
+        )
+    return classification
 
-def make_export_folder(export_folder:str,
-                          model_used,
-                          chain_used:str,
-                          run_alias:str)-> str:
+
+def make_export_folder(
+    export_folder: str, model_used, chain_used: str, run_alias: str
+) -> str:
     """creates folder of format <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
@@ -71,13 +87,14 @@ def make_export_folder(export_folder:str,
         run_alias: name of the classification run to be saved
     """
     today = str(date.today())
-    folder_path = os.path.join(export_folder,chain_used,model_used,today,run_alias)
+    folder_path = os.path.join(export_folder, chain_used, model_used, today, run_alias)
     if os.path.exists(folder_path):
-        return(folder_path)
+        return folder_path
     else:
         logger.info(f"Creating folder at {folder_path}")
         os.makedirs(folder_path)
-        return(folder_path)
+        return folder_path
+
 
 def get_prompt_texts_from_meta(classification: StanceClassification) -> dict:
     """pulls prompt texts from meta data and returns it
@@ -89,28 +106,31 @@ def get_prompt_texts_from_meta(classification: StanceClassification) -> dict:
         dict: gets all the meta information - created during the stance classification with a prompt chain - and returns it as a string (instead of a nested dictionary)
     """
     if "llms" not in classification.meta:
-        return({})
+        return {}
     else:
         components = {}
         chain_components = classification.meta["llms"]
         for component_key in chain_components.keys():
-            components[component_key] = {"prompt_text":str(chain_components[component_key])}
-    return(components)
+            components[component_key] = {
+                "prompt_text": str(chain_components[component_key])
+            }
+    return components
 
 
 def process(
     egs,
     llm,
-    export_folder:str,
-    model_used:str,
-    chain_used:str,
+    export_folder: str,
+    model_used: str,
+    chain_used: str,
     true_stance_key=None,
     wait_time=5,
     stream_out=True,
-    id_key = None,
+    id_key=None,
     chat=True,
     llm2=None,
-    entity_mask=None):
+    entity_mask=None,
+):
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
     logger.info(f"Starting run {run_alias}")
@@ -135,15 +155,20 @@ def process(
     """
     pred_egs = []
     for eg in tqdm(egs):
-        eg["stance_classification"] = detect_stance(eg,llm=llm,
-                                                    chain_label=chain_used,
-                                                    chat=chat,
-                                                    llm2=llm2,
-                                                    entity_mask=entity_mask)
+        eg["stance_classification"] = detect_stance(
+            eg,
+            llm=llm,
+            chain_label=chain_used,
+            chat=chat,
+            llm2=llm2,
+            entity_mask=entity_mask,
+        )
         eg["run_alias"] = run_alias
         eg["stance_pred"] = eg["stance_classification"].stance
         eg["meta"] = {
-            "prompt_history": get_prompt_texts_from_meta(classification=eg["stance_classification"])
+            "prompt_history": get_prompt_texts_from_meta(
+                classification=eg["stance_classification"]
+            )
         }
         if entity_mask is not None:
             eg["meta"] = eg["meta"] | {"entity_mask": entity_mask}
@@ -156,17 +181,20 @@ def process(
                 chain_used=chain_used,
                 run_alias=run_alias,
                 true_stance_key=true_stance_key,
-                id_key=id_key)
+                id_key=id_key,
+            )
         time.sleep(wait_time)
     if stream_out:
         save_run_meta_info_json(
-            export_folder=export_folder, 
+            export_folder=export_folder,
             model_used=model_used,
             chain_used=chain_used,
             run_alias=run_alias,
-            entity_mask = entity_mask)
+            entity_mask=entity_mask,
+        )
     logger.info(f"finished run {run_alias}")
-    return(pred_egs)
+    return pred_egs
+
 
 def evaluate(egs_with_preds):
     """creates and outputs evaluation metrics: for each stance class: precision, recall, f1, accuracy, and macro (precision, recall, F1, accuracy) and micro (precision, recall, F1, accuracy)
@@ -179,21 +207,20 @@ def evaluate(egs_with_preds):
     for eg in egs_with_preds:
         y_pred.append(eg["stance_pred"])
         y_true.append(eg["stance_true"])
-    classes = ["support","opposition","irrelevant"]
+    classes = ["support", "opposition", "irrelevant"]
     logger.info("Creating evaluation report")
     eval_metrics = classification_report(
-        y_true,
-        y_pred,
-        labels=classes,
-        output_dict=True)
-    logger.info(f"----------- Evaluation metrics ------------ \n {eval_metrics} \n ------------------")
-    return(eval_metrics)
+        y_true, y_pred, labels=classes, output_dict=True
+    )
+    logger.info(
+        f"----------- Evaluation metrics ------------ \n {eval_metrics} \n ------------------"
+    )
+    return eval_metrics
 
-def save_evaluations_json(export_folder:str,
-                          eval_metrics,
-                          chain_used:str,
-                          model_used:str,
-                          run_alias:str) -> None:
+
+def save_evaluations_json(
+    export_folder: str, eval_metrics, chain_used: str, model_used: str, run_alias: str
+) -> None:
     """serializes metrics to metrics.json file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
@@ -203,23 +230,24 @@ def save_evaluations_json(export_folder:str,
         model_used: llm model name
         run_alias: name of the classification run to be saved
     """
-    export_folder_path = make_export_folder(export_folder=export_folder,
-                                            chain_used=chain_used,
-                                            model_used=model_used,
-                                            run_alias=run_alias)
-    out_dict = {
-        "run_alias": run_alias,
-        "metrics": eval_metrics
-    }
+    export_folder_path = make_export_folder(
+        export_folder=export_folder,
+        chain_used=chain_used,
+        model_used=model_used,
+        run_alias=run_alias,
+    )
+    out_dict = {"run_alias": run_alias, "metrics": eval_metrics}
     logger.info(f"Saving evaluation report to {str(export_folder_path)}")
-    srsly.write_json(os.path.join(export_folder_path,"metrics.json"),
-                     out_dict)
-    
-def save_run_meta_info_json(export_folder:str,
-                        chain_used:str,
-                        model_used:str,
-                        run_alias:str,
-                        entity_mask:str) -> None:
+    srsly.write_json(os.path.join(export_folder_path, "metrics.json"), out_dict)
+
+
+def save_run_meta_info_json(
+    export_folder: str,
+    chain_used: str,
+    model_used: str,
+    run_alias: str,
+    entity_mask: str,
+) -> None:
     """serializes run meta information to meta.json file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
@@ -230,10 +258,12 @@ def save_run_meta_info_json(export_folder:str,
         entity_mask: string used to mask the original entity string in the classified text, if any is given
 
     """
-    export_folder_path = make_export_folder(export_folder=export_folder,
-                                            chain_used=chain_used,
-                                            model_used=model_used,
-                                            run_alias=run_alias)
+    export_folder_path = make_export_folder(
+        export_folder=export_folder,
+        chain_used=chain_used,
+        model_used=model_used,
+        run_alias=run_alias,
+    )
     if entity_mask is not None:
         entity_masking = entity_mask
     else:
@@ -243,19 +273,21 @@ def save_run_meta_info_json(export_folder:str,
         "chain_used": chain_used,
         "model_used": model_used,
         "date_run": str(date.today()),
-        "entity_masking": entity_masking
+        "entity_masking": entity_masking,
     }
     logger.info(f"Saving run meta-information to {str(export_folder_path)}")
-    srsly.write_json(os.path.join(export_folder_path,"meta.json"),
-                     out_dict)
+    srsly.write_json(os.path.join(export_folder_path, "meta.json"), out_dict)
 
-def save_classifications_jsonl(export_folder:str,
-                               egs_with_classifications, 
-                               model_used:str, 
-                               chain_used:str,
-                               run_alias:str, 
-                               id_key = None,
-                               true_stance_key=None) -> None:
+
+def save_classifications_jsonl(
+    export_folder: str,
+    egs_with_classifications,
+    model_used: str,
+    chain_used: str,
+    run_alias: str,
+    id_key=None,
+    true_stance_key=None,
+) -> None:
     """serializes a list of stance classifications to JSONL in a classifications.jsonl file at <export_folder/<chain_used>/<model_used>/<current date>/<run_alias>
 
     Args:
@@ -278,19 +310,22 @@ def save_classifications_jsonl(export_folder:str,
                 "model_used": model_used,
                 "chain_used": chain_used,
                 "run_alias": run_alias,
-                "meta": eg["meta"]
-                }
+                "meta": eg["meta"],
+            }
             if id_key is not None:
                 export_dict = export_dict | {"id": eg[id_key]}
             if true_stance_key is not None:
                 export_dict = export_dict | {"stance_true": eg[true_stance_key]}
             to_export.append(export_dict)
-    export_subfolder = make_export_folder(export_folder=export_folder,
-                                          model_used=model_used,
-                                          chain_used=chain_used,
-                                          run_alias=run_alias)
-    filepath = os.path.join(export_subfolder,"classifications.jsonl")
-    srsly.write_jsonl(filepath,to_export)
+    export_subfolder = make_export_folder(
+        export_folder=export_folder,
+        model_used=model_used,
+        chain_used=chain_used,
+        run_alias=run_alias,
+    )
+    filepath = os.path.join(export_subfolder, "classifications.jsonl")
+    srsly.write_jsonl(filepath, to_export)
+
 
 def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
     """Helper to convert exports from prodigy to simpler list to pass to stance annotations tasks.
@@ -300,34 +335,39 @@ def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
     """
     egs = []
     if remove_flagged:
-        logger.info("Removing flagged evaluation examples. To avoid this, set remove_flagged to False")
+        logger.info(
+            "Removing flagged evaluation examples. To avoid this, set remove_flagged to False"
+        )
     for eg in prodigy_egs:
-        refactored = { 
+        refactored = {
             "id": eg["par_id"],
             "text": eg["text"],
             "ent_text": eg["meta"]["ent_text"],
             "statement": eg["statement_de"],
-            "stance_true": eg["accept"][0]
+            "stance_true": eg["accept"][0],
         }
         if remove_flagged:
-            if 'flagged' in eg.keys():
-                if eg['flagged'] is not True:
+            if "flagged" in eg.keys():
+                if eg["flagged"] is not True:
                     egs.append(refactored)
-            if 'flagged' not in eg.keys():
-                    egs.append(refactored)
+            if "flagged" not in eg.keys():
+                egs.append(refactored)
         if remove_flagged is not True:
             egs.append(refactored)
-    return(egs)
+    return egs
 
-def process_evaluate(egs,
-               llm,
-               model_used:str,
-               chain_used:str,
-               chat=True,
-               wait_time=0.5,
-               export_folder="./evaluations",
-               llm2=None,
-               entity_mask=None):
+
+def process_evaluate(
+    egs,
+    llm,
+    model_used: str,
+    chain_used: str,
+    chat=True,
+    wait_time=0.5,
+    export_folder="./evaluations",
+    llm2=None,
+    entity_mask=None,
+):
     """Process a list of examples to via a llm backend, stream out results, evaluate against true values and save evaluations
 
     Args:
@@ -340,7 +380,7 @@ def process_evaluate(egs,
         export_folder (str, optional): Folder for evaluation output. Defaults to "./evaluations".
     """
     preds = process(
-        egs = egs,
+        egs=egs,
         llm=llm,
         export_folder=export_folder,
         model_used=model_used,
@@ -350,19 +390,23 @@ def process_evaluate(egs,
         stream_out=True,
         chat=chat,
         llm2=llm2,
-        entity_mask=entity_mask
-        )
+        entity_mask=entity_mask,
+    )
     eval_metrics = evaluate(preds)
     run_alias = preds[0]["run_alias"]
     assert all([pred["run_alias"] == run_alias for pred in preds])
-    save_evaluations_json(export_folder=export_folder, 
-                          eval_metrics=eval_metrics,
-                          model_used=model_used,
-                          chain_used=chain_used,
-                          run_alias=run_alias)
-    save_run_meta_info_json(export_folder=export_folder, 
-                        model_used=model_used,
-                        chain_used=chain_used,
-                        run_alias=run_alias,
-                        entity_mask = entity_mask)
-    return(preds)
+    save_evaluations_json(
+        export_folder=export_folder,
+        eval_metrics=eval_metrics,
+        model_used=model_used,
+        chain_used=chain_used,
+        run_alias=run_alias,
+    )
+    save_run_meta_info_json(
+        export_folder=export_folder,
+        model_used=model_used,
+        chain_used=chain_used,
+        run_alias=run_alias,
+        entity_mask=entity_mask,
+    )
+    return preds
