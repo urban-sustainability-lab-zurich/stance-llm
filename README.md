@@ -8,7 +8,7 @@ stance-llm offers several prompt chains to choose from to classify stances (see 
 
 ```
 [{"text":<German-text-to-analyze>, 
-"org_text": <entity string to classify stance for>, 
+"ent_text": <entity string to classify stance for>, 
 "statement": <the (German) statement to evaluate stance of entity toward>}`]
 ```
 
@@ -16,7 +16,7 @@ for example:
 
 ```
 [{"text":"Emily will LLMs in den Papageienzoo sperren und streng beaufsichtigen. Das ist gut so.", 
-"org_text": <Emily>, 
+"ent_text": <Emily>, 
 "statement": <LLMs sollten in den Papageienzoo gesperrt werden.>}`]
 ```
 
@@ -55,7 +55,7 @@ pip install stance-llm
 Your data could look like this:
 
 
-| id | statement                      | text            | org_text |
+| id | statement                      | text            | ent_text |
 |----|--------------------------------|-----------------------|----------------|
 | 1  | "Mehr Bäume sollten gepflanzt werden" | "Die vereinigten Waldelfen haben eine Kampagne organisiert, die die Bevölkerung für die Vorteile des Baumpflanzens sensibilisieren soll" | "vereinigten Waldelfen"|
 | 2  | "Sport ist Mord"     | "Das Sportministerium spricht sich gegen übermässigen Konsum von Zucker im Rahmen von Fahrradfahrten aus" | "Sportministerium"|
@@ -65,7 +65,7 @@ To use the data with stance-llm, turn it into a list of dictionaries of the form
 
 ```
 [{"text":<German-text-to-analyze>, 
-"org_text": <entity string to classify stance for>, 
+"ent_text": <entity string to classify stance for>, 
 "statement": <the (German) statement to evaluate stance of entity toward>}`]
 ```
 
@@ -77,8 +77,7 @@ Optionally, per item in the list of dictionaries:
 
 stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI) or running locally. 
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers), which does **not** use constrained grammar:
-
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers), which does **not** use constrained grammar. See table below.
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
@@ -93,7 +92,7 @@ stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance
 
 ## Get started
 
-Load an LLM - here for example, we might use [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
+Load an LLM - for example, we might use [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
 
 > ⚠️ This downloads a number of large files and you'll probably need a GPU and set up your system to utilize it
 
@@ -117,11 +116,11 @@ Let's create some test data:
 ```python
 test_examples = [
     {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"Stadt Bern",
+     "ent_text":"Stadt Bern",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "support"},
      {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"FDP",
+     "ent_text":"FDP",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "opposition"}]
 ```
@@ -188,6 +187,16 @@ process(
     entity_mask="Organisation X" #here is the mask
     )
 ```
+
+### Chat models
+
+Some LLMs loadable as guidance models are "chat" models requiring a different form of prompting.
+All prompt chains in stance-llm are implemented in both chat and non-chat versions. You can choose which version to use by specifying the boolean (True/ False) `chat` option to its main functions (`detect_stance`, `process` and `process_evaluate`). It defaults to "True".
+Generally, you should get a warning (via guidance) if you use a chat version with a non-chat LLM model.
+
+### Use of multiple LLMs in one prompt chain
+
+Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, eg. a locally hosted model (like Disco LM) the classification part and a model accessed through an API for the irrelevance check part (like GPT-3.5). Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
 
 ## Implemented prompt chains
 
