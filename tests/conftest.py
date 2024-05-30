@@ -11,11 +11,11 @@ from stance_llm.base import REGISTERED_LLM_CHAINS,CONSTRAINED_GRAMMAR_CHAINS
 def test_examples():
     test_egs = [
     {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"Stadt Bern",
+     "ent_text":"Stadt Bern",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "support"},
      {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"FDP",
+     "ent_text":"FDP",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "opposition"}]
     return(test_egs)

@@ -28,10 +28,10 @@ def test_detect_stance_returns_correct_entity(stance_detection_runs_openai,
                                               test_examples):
     """Test if stance detection runs return the correct entity string
     """
-    assert all(run.entity == test_examples[0]["org_text"] for run in stance_detection_runs_openai)
+    assert all(run.entity == test_examples[0]["ent_text"] for run in stance_detection_runs_openai)
 
 def test_detect_stance_masked_returns_correct_entity(stance_detection_run_masked_openai,
                                                      test_examples):
     """Tet if masked stance detection runs return the correct entity string
     """
-    assert stance_detection_run_masked_openai.entity == test_examples[0]["org_text"]
+    assert stance_detection_run_masked_openai.entity == test_examples[0]["ent_text"]

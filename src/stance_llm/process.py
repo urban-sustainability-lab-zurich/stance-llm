@@ -14,12 +14,12 @@ from stance_llm.base import StanceClassification, get_registered_chains, get_all
 def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)-> Self:
     """Detect stance of an entity in a dictionary input
 
-    Expects a dictionary item with a "text" key containing text to classify, a key "org_text" 
+    Expects a dictionary item with a "text" key containing text to classify, a key "ent_text" 
     containing a string for the organizational entity to detect stance for and a key "statement"
     containing the statement to evaluate the stance against
 
     Args:
-        eg: A dictionary item with a "text" key containing text to classify and a "org_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
+        eg: A dictionary item with a "text" key containing text to classify and a "ent_text" key containing a string for the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
         llm: A guidance model backend from guidance.models
         chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
     
@@ -33,7 +33,7 @@ def detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_ma
         allowed_dual_llm_labels = get_allowed_dual_llm_chains()
         if chain_label not in allowed_dual_llm_labels:
             raise NameError(f"Prompt chain is not set up for using two llm backends. Allowed are {allowed_dual_llm_labels}")
-    entity = eg["org_text"]
+    entity = eg["ent_text"]
     text = eg["text"]
     statement = eg["statement"]
     task = StanceClassification(
@@ -120,7 +120,7 @@ def process(
     
      # TODO
     Args:
-        egs: list of examples to classify as dictionaries with at least keys "text","org_text","statement" (see detect_stance())
+        egs: list of examples to classify as dictionaries with at least keys "text","ent_text","statement" (see detect_stance())
         llm: A guidance model backend from guidance.models
         export_folder: Folder for evaluation output.
         model_used: name of the currently employed llm
@@ -272,7 +272,7 @@ def save_classifications_jsonl(export_folder:str,
         if "stance_classification" in eg.keys():
             export_dict = {
                 "text": eg["text"],
-                "org_text": eg["org_text"],
+                "ent_text": eg["ent_text"],
                 "statement": eg["statement"],
                 "stance_pred": eg["stance_classification"].stance,
                 "model_used": model_used,
@@ -305,7 +305,7 @@ def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
         refactored = { 
             "id": eg["par_id"],
             "text": eg["text"],
-            "org_text": eg["meta"]["org_text"],
+            "ent_text": eg["meta"]["ent_text"],
             "statement": eg["statement_de"],
             "stance_true": eg["accept"][0]
         }
@@ -331,7 +331,7 @@ def process_evaluate(egs,
     """Process a list of examples to via a llm backend, stream out results, evaluate against true values and save evaluations
 
     Args:
-        egs: A list of dictionary items with a "text" key containing text to classify, a "org_text" key containing a string for the organizational entity to predict stance for and a "stance_true" key containing a true stance to evaluate against
+        egs: A list of dictionary items with a "text" key containing text to classify, a "ent_text" key containing a string for the organizational entity to predict stance for and a "stance_true" key containing a true stance to evaluate against
         llm: A guidance model backend from guidance.models
         model_used: String giving label for model backend
         chain_used: An implemented llm chain. See stance_llm.base.get_registered_chains for list

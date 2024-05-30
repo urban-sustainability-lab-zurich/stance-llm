@@ -8,7 +8,7 @@ stance-llm offers several prompt chains to choose from to classify stances (see 
 
 ```
 [{"text":<German-text-to-analyze>, 
-"org_text": <entity string to classify stance for>, 
+"ent_text": <entity string to classify stance for>, 
 "statement": <the (German) statement to evaluate stance of entity toward>}`]
 ```
 
@@ -16,7 +16,7 @@ for example:
 
 ```
 [{"text":"Emily will LLMs in den Papageienzoo sperren und streng beaufsichtigen. Das ist gut so.", 
-"org_text": <Emily>, 
+"ent_text": <Emily>, 
 "statement": <LLMs sollten in den Papageienzoo gesperrt werden.>}`]
 ```
 
@@ -55,7 +55,7 @@ pip install stance-llm
 Your data could look like this:
 
 
-| id | statement                      | text            | org_text |
+| id | statement                      | text            | ent_text |
 |----|--------------------------------|-----------------------|----------------|
 | 1  | "Mehr Bäume sollten gepflanzt werden" | "Die vereinigten Waldelfen haben eine Kampagne organisiert, die die Bevölkerung für die Vorteile des Baumpflanzens sensibilisieren soll" | "vereinigten Waldelfen"|
 | 2  | "Sport ist Mord"     | "Das Sportministerium spricht sich gegen übermässigen Konsum von Zucker im Rahmen von Fahrradfahrten aus" | "Sportministerium"|
@@ -65,7 +65,7 @@ To use the data with stance-llm, turn it into a list of dictionaries of the form
 
 ```
 [{"text":<German-text-to-analyze>, 
-"org_text": <entity string to classify stance for>, 
+"ent_text": <entity string to classify stance for>, 
 "statement": <the (German) statement to evaluate stance of entity toward>}`]
 ```
 
@@ -117,11 +117,11 @@ Let's create some test data:
 ```python
 test_examples = [
     {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"Stadt Bern",
+     "ent_text":"Stadt Bern",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "support"},
      {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
-     "org_text":"FDP",
+     "ent_text":"FDP",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
      "stance_true": "opposition"}]
 ```
