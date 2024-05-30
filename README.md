@@ -115,7 +115,7 @@ gpt35 = models.OpenAI("gpt-3.5-turbo",api_key=<your-API-key>)
 Let's create some test data:
 
 ```python
-test_egs = [
+test_examples = [
     {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
      "org_text":"Stadt Bern",
      "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
