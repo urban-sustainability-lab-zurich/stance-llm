@@ -1,8 +1,10 @@
 # stance-llm: German LLM prompts for stance detection
 
-Classify stances of entities related to a statement in German text using large language models through guidance-llm. 
+Classify stances of entities related to a statement in German text using large language models (LLMS). 
 
-The package offers several prompt chains to choose from (see [impemented prompt chains](#implemented-prompt-chains)). For its basic functionality, you feed it a list of dictionaries in the form 
+stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
+
+stance-llm offers several prompt chains to choose from to classify stances (see [impemented prompt chains](#implemented-prompt-chains)). At its core, in terms of input and output, you feed it a list of dictionaries in the form:
 
 ```
 [{"text":<German-text-to-analyze>, 
@@ -10,7 +12,7 @@ The package offers several prompt chains to choose from (see [impemented prompt 
 "statement": <the (German) statement to evaluate stance of entity toward>}`]
 ```
 
-for example
+for example:
 
 ```
 [{"text":"Emily will LLMs in den Papageienzoo sperren und streng beaufsichtigen. Das ist gut so.", 
@@ -23,67 +25,24 @@ And you get a list of `StanceClassification` objects back containing
 - a predicted stance (here likely "support", if all went well) by the LLM, currently one of "support","opposition" or "irrelevant"
 - meta-information on the the prompts and generated text by the LLM during processing
 
-stance-llm is built on [guidance-llm](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
-
-Beyond this, stance-llm allows for entity masking, serializing and streaming out output and evaluating against true stances.
-
-### Implemented prompt chains
-
-#### is
-1. prompts the LLM to check, if there is a stance in the text related to the statement, or not
-2. if the stance in the text is found to be related to the statement, the LLM is prompted to classify the stance as support not support, if not related stance: stance=irrelevant
-3. if the stance is not support: the stance=opposition 
-
-
-#### sis
-1. prompt the LLM to summarise the input text
-2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
-3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
-
-
-#### nise
-1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
-2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
-3. prompt the LLM to summarise the input text
-4. prompts the LLM explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support
-5. prompts the LLM explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition
-
-
-#### s2
-1. prompts the LLM to summarise the input text in relation to the statement
-2. prompts the LLM to classify the detected actor's stance based on the summary. Stance class labels to select from: irrelevant, opposition, support
-
-
-#### is2
-1. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
-2. if actor has a related stance: continue with 3., if not: stance=irrelevance
-3. summarises text in relation to the statement and prompts in the same prompt text/step for the stance classification for either opposition or support
-
-
-#### s2is
-1. prompt the LLM to summarise the input text in relation to the statement
-2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
-3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
-
-
-#### nis2e
-1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
-2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
-3. prompt the LLM to summarise the input text in relation to the statement
-4. prompts the LLM explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support
-5. prompts the LLM explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition
-
+Going beyond basic functionality, stance-llm allows for entity masking, serializing and streaming out output and evaluating against true stances.
 
 ## Motivation
 
-simple and usable interface for specific German LLM prompts built on [guidance-llm](https://github.com/guidance-ai/guidance/tree/main). TODO: write some more?...
+We developed and evaluated a number of different German LLM prompts during a research project (preprint with detailed evaluation results forthcoming). 
+At this stage, stance-llm provides an interface to easily use these specific, [different prompt chains](#implemented-prompt-chains) on your own data and getting structured output back.
+Thus we provide a way to easily leverage LLMs for stance classification in German texts.
 
+We generally believe that the hype around LLMs for many NLP tasks is overblown (for many reasons).
 
-## Install
+However, the NLP task of zero-shot classifying the stance of an entity toward a statement is incredibly general and hard to satisfyingly solve with current tools. 
+For this general, hard task, the use of LLMs, as task-unspecific, general models seemed to have a use case to us.
 
-> ⚠️ Note that `stance-llm` is compatible from **Python 3.10** or higher.
+## Installation
 
-stance-llm is available through PyPI
+> ⚠️ `stance-llm` requires **Python 3.10** or higher.
+
+stance-llm is available through PyPI:
 ```bash
 pip install stance-llm
 ```
@@ -91,24 +50,34 @@ pip install stance-llm
 
 ## How to use `stance-llm`
 
-### Pre-requisites
+### Data
 
-#### Data
-Could look like this:
+Your data could look like this:
 
 
-| id | statement                      | input_text            | detected_actor |
+| id | statement                      | text            | org_text |
 |----|--------------------------------|-----------------------|----------------|
-| 1  | "More trees should be planted" | "The Health Department launched a new campaign to educate citizens about the dangers of excessive sugar consumption, featuring engaging stories and testimonials to promote healthier lifestyle choices." | "health departement"|
-| 2  | "Exercise is good for you"     | "The Sports Department organized a community-wide fitness challenge, encouraging residents to participate in various activities." | "sports departement"|
-> ⚠️ Your data must at least include: text, detected actor in the text, id, statement
+| 1  | "Mehr Bäume sollten gepflanzt werden" | "Die vereinigten Waldelfen haben eine Kampagne organisiert, die die Bevölkerung für die Vorteile des Baumpflanzens sensibilisieren soll" | "vereinigten Waldelfen"|
+| 2  | "Sport ist Mord"     | "Das Sportministerium spricht sich gegen übermässigen Konsum von Zucker im Rahmen von Fahrradfahrten aus" | "Sportministerium"|
+> ⚠️ Your data must at least include: a text to classify a stance in, a string giving a detected actor in the text, and a statement giving a statement to evaluate the stance of the actor against
 
+To use the data with stance-llm, turn it into a list of dictionaries of the form:
 
+```
+[{"text":<German-text-to-analyze>, 
+"org_text": <entity string to classify stance for>, 
+"statement": <the (German) statement to evaluate stance of entity toward>}`]
+```
 
-#### LLM
-Below we provide an example for an OpenAI and a LLM hosted on Hugging Face.
+Optionally, per item in the list of dictionaries:
+- if you want stance-llm to also evaluate its classifications against test data, you may provide a true stance as the value of a "stance_true" key.
+- you may supply an "id" key for your examples, which is serialized to enable you to identify your examples
 
-> ⚠️ Special case OpenAI LLMs: their models reject the following prompt chains due to constraint grammar:
+### Choose your LLM
+
+stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI) or running locally. 
+
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, Gemini...) will reject the following prompt chains due to not allowing for constrained grammar. If you want to test all prompt chains, use an LLM running locally (eg. through guidance.models.Transformers):
 
 
 | prompt chain | constrained grammar    | second llm option     |
@@ -122,58 +91,157 @@ Below we provide an example for an OpenAI and a LLM hosted on Hugging Face.
 | nis2e        | X                      | X                     |
 
 
+## Get started
+
+Load an LLM - here for example, we mightuse [Disco LM German 7b v1](https://huggingface.co/DiscoResearch/DiscoLM_German_7b_v1).
+
+> ⚠️ This downloads a number of large files and you'll probably need a GPU and set up your system to utilize it
 
 
-TODO: mention that the user has to know if their LLM is a chat model, or not
-
-
-
-### Get started
-TODO:
-
-Load LLM
 ```python
 from guidance import models
 
-gpt35 = models.OpenAI("gpt-3.5-turbo",api_key=os.environ["OPEN_API_KEY"])
+disco7b = models.Transformers("DiscoResearch/DiscoLM_German_7b_v1")
 ```
 
-or
+or maybe you want to use OpenAI's servers to do the work for you (*wiederwillig* or *zähneknirschend*, as we say in German).
+
 ```python
 from guidance import models
-os.environ["HF_HOME"]
-disco7b = models.Transformers("DiscoResearch/DiscoLM_German_7b_v1", 
-                    cache_dir=os.environ["HF_HOME"],
-                    device_map='auto',
-                    torch_dtype=torch.float16)
 
+gpt35 = models.OpenAI("gpt-3.5-turbo",api_key=<your-API-key>)
 ```
 
-Stance detection
+Let's create some test data:
+
+```python
+test_egs = [
+    {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
+     "org_text":"Stadt Bern",
+     "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
+     "stance_true": "support"},
+     {"text":"Die Stadt Bern spricht sich dafür aus, mehr Velowege zu bauen. Dies ist allerdings umstritten. Die FDP ist klar dagegen.",
+     "org_text":"FDP",
+     "statement":"Das Fahrrad als Mobilitätsform soll gefördert werden.",
+     "stance_true": "opposition"}]
+```
+
+Now we can run stance detection on a single dictionary item.
+Here, we will use the [is](#is) chain.
+
 ```python
 from stance_llm.process import detect_stance
 
-detect_stance(eg:dict, llm, chain_label:str, llm2=None, chat=True, entity_mask=None)
+classification = detect_stance(
+            eg = test_examples[0],
+            llm = gpt35,
+            chain_label = "is"
+        )
 ```
 
-Evaluation
+Et voilà, this should return a `StanceClassification` object containing (among other things, a predicted stance).
+
 ```python
-from stance_llm.process import evaluate
-
-evaluate(egs_with_preds)
+classification.stance
 ```
 
-Process, classify and evaluation
+To process a list of dictionaries and serialize the classifications to a folder as `classifications.jsonl`, we have `process`:
+
+```python
+from stance_llm.process import process
+
+process(
+    egs=test_examples,
+    llm=gpt35,
+    export_folder=<folder-to-your-output-folder>,
+    chain_used="is",
+    model_used="openai-gpt35", #the label you want to give the LLM used
+    stream_out=True)
+```
+
+If your examples to classify have a "stance_true" key (for example containing manually annotated stances for your examples - they must be one of "support","opposition" or "irrelevant"), you can also evaluate results of classifications with `process_evaluate`, which will create an additional `metrics.json` file in the output folder:
+
 ```python
 from stance_llm.process import process_evaluate
-process_evaluate(egs=random.sample(egs,sample),
-                lm=gpt35,
-                model_used="gpt35",
-                chain_used=chain,
-                entity_mask=entity_mask)
+
+process_evaluate(
+    egs=test_examples,
+    llm=gpt35,
+    export_folder=<folder-to-your-output-folder>,
+    chain_used="is",
+    model_used="openai-gpt35", #the label you want to give the LLM used
+    stream_out=True)
 ```
 
+### Entity masking
 
-## References
+LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this, if you want to classify stances of entities that are relatively visible it might make sense to "mask" them. stance-llm provides a way to do so by providing a `entity_mask` option to its main functions (`detect_stance`, `process` and `process_evaluate`). You can supply a more neutral string to this option (e.g. "Organisation X") and this will hide the actual entity name from the LLM in all prompts.
 
-Saif Mohammad, Svetlana Kiritchenko, Parinaz Sobhani, Xiaodan Zhu, and Colin Cherry. 2016. [Semeval-2016 task 6: Detecting stance in tweets](https://aclanthology.org/S16-1003/). In Proceedings of the 10th international workshop on semantic evaluation (SemEval-2016), pages 31–41.
+```python
+process(
+    egs=test_examples,
+    llm=gpt35,
+    export_folder=<folder-to-your-output-folder>,
+    chain_used="is",
+    model_used="openai-gpt35", #the label you want to give the LLM used
+    stream_out=True,
+    entity_mask="Organisation X" #here is the mask
+    )
+```
+
+## Implemented prompt chains
+
+Feel free to play around with those. We'll have a preprint out soon on which chains worked best on our specific data (which might be really different from yours).
+
+### is
+1. prompts the LLM to check, if there is a stance in the text related to the statement, or not
+2. if the stance in the text is found to be related to the statement, the LLM is prompted to classify the stance as support not support, if not related stance: stance=irrelevant
+3. if the stance is not support: the stance=opposition 
+
+
+### sis
+1. prompt the LLM to summarise the input text
+2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
+3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
+
+
+### nise
+1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
+2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
+3. prompt the LLM to summarise the input text
+4. prompts the LLM explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support
+5. prompts the LLM explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition
+
+
+### s2
+1. prompts the LLM to summarise the input text in relation to the statement
+2. prompts the LLM to classify the detected actor's stance based on the summary. Stance class labels to select from: irrelevant, opposition, support
+
+
+### is2
+1. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
+2. if actor has a related stance: continue with 3., if not: stance=irrelevance
+3. summarises text in relation to the statement and prompts in the same prompt text/step for the stance classification for either opposition or support
+
+
+### s2is
+1. prompt the LLM to summarise the input text in relation to the statement
+2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
+3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
+
+
+### nis2e
+1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
+2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
+3. prompt the LLM to summarise the input text in relation to the statement
+4. prompts the LLM explicitly, if the stance in the summary text is in support of the statement, if not: continue with 4., if yes: stance=support if actor has a related stance: classify stance as opposition or support
+5. prompts the LLM explicitly, if the stance in the summary text is in opposition of the statement, if not: stance=irrelevant, if yes: stance=opposition
+
+## Roadmap
+
+For future releases, we could envision at least:
+- a closer integration with spacy
+- extending chains to different languages
+- providing an interface for providing custom prompt chains
+
+Get in touch if you want to contribute.
