@@ -1,5 +1,9 @@
 # stance-llm: German LLM prompts for stance detection
 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/stance-llm)
+![PyPI](https://img.shields.io/pypi/v/stance-llm?label=pypi%20package)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/stance-llm)
+
 Classify stances of entities related to a statement in German text using large language models (LLMs). 
 
 stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
