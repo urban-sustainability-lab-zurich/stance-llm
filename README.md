@@ -13,7 +13,7 @@ stance-llm offers several prompt chains to choose from to classify stances (see 
 ```
 [{"text":<German-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}`]
+"statement": <the (German) statement to evaluate stance of entity toward>}]
 ```
 
 for example:
@@ -21,7 +21,7 @@ for example:
 ```
 [{"text":"Emily will LLMs in den Papageienzoo sperren und streng beaufsichtigen. Das ist gut so.", 
 "ent_text": "Emily", 
-"statement": "LLMs sollten in den Papageienzoo gesperrt werden."}`]
+"statement": "LLMs sollten in den Papageienzoo gesperrt werden."}]
 ```
 
 And you get a list of `StanceClassification` objects back containing 
@@ -70,7 +70,7 @@ To use the data with stance-llm, turn your data into a list of dictionaries of t
 ```
 [{"text":<German-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}`]
+"statement": <the (German) statement to evaluate stance of entity toward>}]
 ```
 
 Optionally, per item in the list of dictionaries:
@@ -189,11 +189,11 @@ LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this
 process(
     egs=test_examples,
     llm=gpt35,
-    export_folder=<folder-to-your-output-folder>,
+    export_folder=<path-to-your-output-folder>,
     chain_used="is",
     model_used="openai-gpt35", #the label you want to give the LLM used
     stream_out=True,
-    entity_mask="Organisation X" #here is the mask
+    entity_mask="Organisation X" #this string will be used to mask the entity
     )
 ```
 
