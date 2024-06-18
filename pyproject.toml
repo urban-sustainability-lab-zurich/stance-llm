@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "stance-llm"
-version = "0.2.0"
+version = "0.2.1"
 description = "Classify stances of entities related to a statement in German text using large language models (LLMs)"
 authors = ["Mario Angst <mario.angst@uzh.ch>", "Viviane Walker <viviane.walker@uzh.ch>"]
 readme = "README.md"
@@ -15,6 +15,7 @@ tdqm = "^0.0.1"
 polars = "^0.20.15"
 wonderwords = "^2.2.0"
 scikit-learn = "^1.4.2"
+numpy = "1.26.4"
 
 [tool.poetry.group.dev.dependencies]
 transformers = "^4.41.1"
@@ -25,7 +26,7 @@ typer = "^0.9.0"
 openai = "^1.30.1"
 pytest = "^8.2.1"
 pytest-dotenv = "^0.5.2"
-torch = "^2.3.0"
+torch = "2.3.0"
 
 [build-system]
 requires = ["poetry-core"]
