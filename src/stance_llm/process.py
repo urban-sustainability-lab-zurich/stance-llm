@@ -328,10 +328,14 @@ def save_classifications_jsonl(
 
 
 def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
-    """Helper to convert exports from prodigy to simpler list to pass to stance annotations tasks.
+    """Helper to convert exports from prodigy annotations to simpler list to pass to stance annotations tasks.
+
 
     Args:
-        prodigy_egs: List of dicts exported from prodigy db
+        prodigy_egs: List of dicts exported from prodigy db with keys
+        "par_id","text",["meta"]["org"],"statement_de"
+        and annotated stances at ["accept"][0]
+        remove_flagged (bool, optional): remove examples marked as flagged. defaults to True
     """
     egs = []
     if remove_flagged:
@@ -342,7 +346,7 @@ def prepare_prodigy_egs(prodigy_egs, remove_flagged=True):
         refactored = {
             "id": eg["par_id"],
             "text": eg["text"],
-            "ent_text": eg["meta"]["ent_text"],
+            "ent_text": eg["meta"]["org_text"],
             "statement": eg["statement_de"],
             "stance_true": eg["accept"][0],
         }
