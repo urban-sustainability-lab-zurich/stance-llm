@@ -544,6 +544,7 @@ class StanceClassification:
             )
         if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
             self.stance = "irrelevant"
+            irrelevance = None
             stance = None
             summary = None
         if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
@@ -679,6 +680,7 @@ class StanceClassification:
             )
         if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
             self.stance = "irrelevant"
+            irrelevance = None
             stance = None
             summary = None
         if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
