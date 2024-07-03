@@ -23,6 +23,12 @@ def test_examples():
             "statement": "Das Fahrrad als Mobilitätsform soll gefördert werden.",
             "stance_true": "opposition",
         },
+        {
+            "text": "Emily will Papageien zähmen.",
+            "ent_text": "Emily",
+            "statement": "Das Fahrrad als Mobilitätsform soll gefördert werden.",
+            "stance_true": "irrelevant",
+        },
     ]
     return test_egs
 
@@ -64,10 +70,11 @@ def allowed_openai_chains():
 def stance_detection_runs_openai(test_examples, gpt35_openai, allowed_openai_chains):
     classifications = []
     for chain in allowed_openai_chains:
-        classification = detect_stance(
-            eg=test_examples[0], llm=gpt35_openai, chain_label=chain
-        )
-        classifications.append(classification)
+        for test_eg in test_examples:
+            classification = detect_stance(
+                eg=test_eg, llm=gpt35_openai, chain_label=chain
+            )
+            classifications.append(classification)
     return classifications
 
 
@@ -75,10 +82,11 @@ def stance_detection_runs_openai(test_examples, gpt35_openai, allowed_openai_cha
 def stance_detection_runs_trf(test_examples, gpt2_trf):
     classifications = []
     for chain in REGISTERED_LLM_CHAINS:
-        classification = detect_stance(
-            eg=test_examples[0], llm=gpt2_trf, chain_label=chain
-        )
-        classifications.append(classification)
+        for test_eg in test_examples:
+            classification = detect_stance(
+                eg=test_eg, llm=gpt2_trf, chain_label=chain
+            )
+            classifications.append(classification)
     return classifications
 
 
