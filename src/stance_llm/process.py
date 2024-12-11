@@ -33,6 +33,12 @@ def detect_stance(
     Returns:
         A StanceClassification class object with a stance and meta data
     """
+    if 'text' not in eg.keys():
+        logger.error("Input dictionary for classification has not text key")
+    if 'ent_text' not in eg.keys():
+        logger.error("Input dictionary for classification has not ent_text key")
+    if 'statement' not in eg.keys():
+        logger.error("Input dictionary for classification has not statement key")
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
         raise NameError("Chain label is not registered")
@@ -186,6 +192,7 @@ def process(
             time.sleep(wait_time)
         except:
             # if error return error stance classification
+            logger.error(f"Classification failed for task. Writing error to stance_pred.")
             eg["run_alias"] = run_alias
             eg["stance_pred"] = "error"
             eg["meta"] = {
