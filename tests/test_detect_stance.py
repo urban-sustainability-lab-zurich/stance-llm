@@ -1,10 +1,9 @@
-from stance_llm.base import StanceClassification
+from stance_llm.base import StanceClassification, ALLOWED_STANCE_CATEGORIES
 
 # from dotenv import load_dotenv
 # load_dotenv(".env")
 
 # RUN TESTS ---------------
-
 
 def test_detect_stance_returns_correct_object_openai(stance_detection_runs_openai):
     """Test if stance detection runs with OpenAI backend return an object of type StanceClassification"""
@@ -26,12 +25,12 @@ def test_detect_stance_returns_stance(
     """Test if stance detection runs return a stance as a string and that the string is in an allowed category"""
     assert all(isinstance(run.stance, str) for run in stance_detection_runs_openai)
     assert all(
-        run.stance in ["support", "opposition", "irrelevant"]
+        run.stance in ALLOWED_STANCE_CATEGORIES
         for run in stance_detection_runs_openai
     )
     assert all(isinstance(run.stance, str) for run in stance_detection_runs_trf)
     assert all(
-        run.stance in ["support", "opposition", "irrelevant"]
+        run.stance in ALLOWED_STANCE_CATEGORIES
         for run in stance_detection_runs_trf
     )
 
