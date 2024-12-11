@@ -33,6 +33,12 @@ def detect_stance(
     Returns:
         A StanceClassification class object with a stance and meta data
     """
+    if 'text' not in eg.keys():
+        logger.error("Input dictionary for classification has not text key")
+    if 'ent_text' not in eg.keys():
+        logger.error("Input dictionary for classification has not ent_text key")
+    if 'statement' not in eg.keys():
+        logger.error("Input dictionary for classification has not statement key")
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
         raise NameError("Chain label is not registered")
@@ -138,7 +144,6 @@ def process(
      - sends data together with constructed prompts to the llm (detect_stance())
      - assigns run alias (specific name) and saves classifications together with prompt texts (get_prompt_texts_from_meta() & save_classifications_jsonl())
     
-     # TODO
     Args:
         egs: list of examples to classify as dictionaries with at least keys "text","ent_text","statement" (see detect_stance())
         llm: A guidance model backend from guidance.models
@@ -155,35 +160,58 @@ def process(
     """
     pred_egs = []
     for eg in tqdm(egs):
-        eg["stance_classification"] = detect_stance(
-            eg,
-            llm=llm,
-            chain_label=chain_used,
-            chat=chat,
-            llm2=llm2,
-            entity_mask=entity_mask,
-        )
-        eg["run_alias"] = run_alias
-        eg["stance_pred"] = eg["stance_classification"].stance
-        eg["meta"] = {
-            "prompt_history": get_prompt_texts_from_meta(
-                classification=eg["stance_classification"]
+        try:
+            eg["stance_classification"] = detect_stance(
+                eg,
+                llm=llm,
+                chain_label=chain_used,
+                chat=chat,
+                llm2=llm2,
+                entity_mask=entity_mask,
             )
-        }
-        if entity_mask is not None:
-            eg["meta"] = eg["meta"] | {"entity_mask": entity_mask}
-        pred_egs.append(eg)
-        if stream_out:
-            save_classifications_jsonl(
-                export_folder=export_folder,
-                egs_with_classifications=pred_egs,
-                model_used=model_used,
-                chain_used=chain_used,
-                run_alias=run_alias,
-                true_stance_key=true_stance_key,
-                id_key=id_key,
-            )
-        time.sleep(wait_time)
+            eg["run_alias"] = run_alias
+            eg["stance_pred"] = eg["stance_classification"].stance
+            eg["meta"] = {
+                "prompt_history": get_prompt_texts_from_meta(
+                    classification=eg["stance_classification"]
+                )
+            }
+            if entity_mask is not None:
+                eg["meta"] = eg["meta"] | {"entity_mask": entity_mask}
+            pred_egs.append(eg)
+            if stream_out:
+                save_classifications_jsonl(
+                    export_folder=export_folder,
+                    egs_with_classifications=pred_egs,
+                    model_used=model_used,
+                    chain_used=chain_used,
+                    run_alias=run_alias,
+                    true_stance_key=true_stance_key,
+                    id_key=id_key,
+                )
+            time.sleep(wait_time)
+        except:
+            # if error return error stance classification
+            logger.error(f"Classification failed for task. Writing error to stance_pred.")
+            eg["run_alias"] = run_alias
+            eg["stance_pred"] = "error"
+            eg["meta"] = {
+                "prompt_history": None
+            }
+            if entity_mask is not None:
+                eg["meta"] = eg["meta"] | {"entity_mask": entity_mask}
+            pred_egs.append(eg)
+            if stream_out:
+                save_classifications_jsonl(
+                    export_folder=export_folder,
+                    egs_with_classifications=pred_egs,
+                    model_used=model_used,
+                    chain_used=chain_used,
+                    run_alias=run_alias,
+                    true_stance_key=true_stance_key,
+                    id_key=id_key,
+                )
+            time.sleep(wait_time)
     if stream_out:
         save_run_meta_info_json(
             export_folder=export_folder,
@@ -205,13 +233,15 @@ def evaluate(egs_with_preds):
     y_true = []
     y_pred = []
     for eg in egs_with_preds:
-        y_pred.append(eg["stance_pred"])
-        y_true.append(eg["stance_true"])
+        if eg["stance_pred"] != "error":
+            y_pred.append(eg["stance_pred"])
+            y_true.append(eg["stance_true"])
     classes = ["support", "opposition", "irrelevant"]
     logger.info("Creating evaluation report")
     eval_metrics = classification_report(
         y_true, y_pred, labels=classes, output_dict=True
     )
+    eval_metrics["error_count"] = len([eg for eg in egs_with_preds if eg["stance_pred"] == "error"])
     logger.info(
         f"----------- Evaluation metrics ------------ \n {eval_metrics} \n ------------------"
     )

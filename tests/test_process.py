@@ -3,6 +3,7 @@ import pathlib
 import srsly
 
 from stance_llm.process import process, process_evaluate
+from stance_llm.base import ALLOWED_STANCE_CATEGORIES
 
 
 def test_process_creates_folder_contents(test_examples, gpt35_openai, test_output_dir):
@@ -41,7 +42,7 @@ def test_process_outputs_classifications(test_examples, gpt35_openai, test_outpu
     assert len(classifications_file) == 1
     assert all(
         [
-            eg["stance_pred"] in ["support", "opposition", "irrelevant"]
+            eg["stance_pred"] in ALLOWED_STANCE_CATEGORIES
             for eg in egs_with_classifications
         ]
     )

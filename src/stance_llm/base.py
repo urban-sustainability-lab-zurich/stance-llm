@@ -27,6 +27,8 @@ IRRELEVANCE_ANSWERS2 = {
     "stance": "Bezieht eine Haltung",
 }
 
+ALLOWED_STANCE_CATEGORIES = ["support", "opposition", "irrelevant", "error"]
+
 
 def construct_irrelevance_prompt(input_text, entity, statement):
     prompt = f"Analysiere den folgenden Text: {input_text}. Bezieht die Organisation {entity} Stellung zur folgenden Aussage: {statement}? Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS['irrelevant']} oder {IRRELEVANCE_ANSWERS['stance']}"

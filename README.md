@@ -270,3 +270,18 @@ For future releases, we could envision at least:
 - providing an interface for providing custom prompt chains
 
 Get in touch if you want to contribute.
+
+# Development
+
+The package is developeed with poetry. Run tests with:
+
+```python
+poetry install
+poetry run pytest
+```
+
+Some of the tests send a small example to the OpenAI api. To run them, you need to set a variable OPEN_AI_KEY in a .env file like:
+
+```.env
+OPEN_AI_KEY='<your-api-key>'
+```
