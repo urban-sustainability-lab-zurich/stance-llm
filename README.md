@@ -33,7 +33,7 @@ Going beyond basic functionality, stance-llm currently allows for [entity maskin
 
 ## Motivation
 
-We developed and evaluated a number of different German LLM prompts during a research project (preprint with detailed evaluation results forthcoming). 
+We developed and evaluated a number of different German LLM prompts during a research project ([ available here](https://osf.io/preprints/socarxiv/5a3k8_v1)). 
 At this stage, stance-llm provides an interface to easily use these specific, [different prompt chains](#implemented-prompt-chains) on your own data and getting structured output back.
 Thus we provide a way to easily leverage LLMs for stance classification of named entities regarding an arbitrary statement in German text.
 
@@ -67,8 +67,6 @@ To activate the development environment (here on Linux):
 source .venv/bin/activate
 ```
 
-
-
 ## How to use `stance-llm`
 
 ### Data
@@ -96,9 +94,9 @@ Optionally, per item in the list of dictionaries:
 
 ### Choose your LLM
 
-stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI, VertexAI...) or running locally. 
+stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted or running locally. In our experience, using the `models.Transformers` method works well, and it is also the one we currently test against.
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI or ...) will reject some prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI) will reject some or all prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
