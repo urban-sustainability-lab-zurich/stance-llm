@@ -51,6 +51,23 @@ stance-llm is available through PyPI:
 pip install stance-llm
 ```
 
+### Development Setup Using UV
+
+To set up the development environment and install dependencies using `uv`, run:
+
+```bash
+uv sync
+```
+
+This by default will create a `.venv/` folder containing the environment, including the dev dependency group.
+
+To activate the development environment (here on Linux):
+
+```bash
+source .venv/bin/activate
+```
+
+
 
 ## How to use `stance-llm`
 
@@ -183,7 +200,7 @@ process_evaluate(
 
 ### Entity masking
 
-LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this, if you want to classify stances of entities that are relatively visible it might make sense to "mask" them. stance-llm provides a way to do so by providing an `entity_mask` option to its main functions (`detect_stance`, `process` and `process_evaluate`). You can supply a more neutral string to this option (e.g. "Organisation X") and this will hide the actual entity name from the LLM in all prompts.
+LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this, if you want to classify stances of entities that are relatively visible it might make sense to "mask" them. stance-llm provides a way to do so by providing an `entity_mask` option to its main functions (`detect_stance`, `process` and `process_evaluate`). You can supply a more neutral string to this option (e.g. "Organisation A") and this will hide the actual entity name from the LLM in all prompts.
 
 ```python
 process(
@@ -273,14 +290,15 @@ Get in touch if you want to contribute.
 
 # Development
 
-The package is developeed with poetry. Run tests with:
+The package is developed using `uv` for environment and dependency management. 
 
-```python
-poetry install
-poetry run pytest
+Run tests with:
+
+```bash
+uv run pytest
 ```
 
-Some of the tests send a small example to the OpenAI api. To run them, you need to set a variable OPEN_AI_KEY in a .env file like:
+Some of the tests send a small example to the OpenAI API. To run them, you need to set a variable `OPEN_AI_KEY` in a `.env` file like:
 
 ```.env
 OPEN_AI_KEY='<your-api-key>'

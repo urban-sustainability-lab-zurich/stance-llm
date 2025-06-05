@@ -63,6 +63,8 @@ def construct_opposition_stance_prompt(input_text, entity, statement):
 def get_registered_chains():
     return REGISTERED_LLM_CHAINS
 
+def get_registered_chains_keys():
+    return [key for key in REGISTERED_LLM_CHAINS.keys()]
 
 def get_allowed_dual_llm_chains():
     return ALLOWED_DUAL_LLM_CHAINS

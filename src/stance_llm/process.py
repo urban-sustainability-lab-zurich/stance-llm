@@ -54,30 +54,21 @@ def detect_stance(
     task = StanceClassification(input_text=text, statement=statement, entity=entity)
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
-    if chain_label == "sis":
-        classification = task.summarize_irrelevant_stance_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "is":
-        classification = task.irrelevant_stance_chain(llm=llm, chat=chat, llm2=llm2)
-    if chain_label == "nise":
-        classification = task.nested_irrelevant_summary_explicit(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "s2is":
-        classification = task.summarize_v2_irrelevant_stance_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "s2":
-        classification = task.summarize_v2_chain(llm=llm, chat=chat, llm2=llm2)
-    if chain_label == "is2":
-        classification = task.irrelevant_summarize_v2_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "nis2e":
-        classification = task.nested_irrelevant_summary_v2_explicit(
-            llm=llm, chat=chat, llm2=llm2
-        )
+
+    chain_method_map = {
+        "sis": task.summarize_irrelevant_stance_chain,
+        "is": task.irrelevant_stance_chain,
+        "nise": task.nested_irrelevant_summary_explicit,
+        "s2is": task.summarize_v2_irrelevant_stance_chain,
+        "s2": task.summarize_v2_chain,
+        "is2": task.irrelevant_summarize_v2_chain,
+        "nis2e": task.nested_irrelevant_summary_v2_explicit,
+    }
+
+    classification_func = chain_method_map.get(chain_label)
+    if classification_func is None:
+        raise NameError(f"Chain label {chain_label} is not supported")
+    classification = classification_func(llm=llm, chat=chat, llm2=llm2)
     return classification
 
 
