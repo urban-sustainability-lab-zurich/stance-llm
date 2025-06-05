@@ -17,7 +17,7 @@ from stance_llm.base import (
 
 
 def detect_stance(
-    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None
+    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None, language="de"
 ) -> Self:
     """Detect stance of an entity in a dictionary input
 
@@ -68,7 +68,8 @@ def detect_stance(
     classification_func = chain_method_map.get(chain_label)
     if classification_func is None:
         raise NameError(f"Chain label {chain_label} is not supported")
-    classification = classification_func(llm=llm, chat=chat, llm2=llm2)
+    # Pass language to all chains
+    classification = classification_func(llm=llm, chat=chat, llm2=llm2, language=language)
     return classification
 
 
@@ -127,6 +128,7 @@ def process(
     chat=True,
     llm2=None,
     entity_mask=None,
+    language="de",
 ):
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
@@ -159,6 +161,7 @@ def process(
                 chat=chat,
                 llm2=llm2,
                 entity_mask=entity_mask,
+                language=language,
             )
             eg["run_alias"] = run_alias
             eg["stance_pred"] = eg["stance_classification"].stance

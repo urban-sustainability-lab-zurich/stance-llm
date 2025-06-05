@@ -3,6 +3,7 @@ import pytest
 from guidance import models
 import os
 from stance_llm.process import detect_stance
+from stance_llm.base import REGISTERED_LLM_CHAINS
 
 # PREPARE EXAMPLE DATA ----------------
 
@@ -29,6 +30,30 @@ def test_examples():
         },
     ]
     return test_egs
+
+@pytest.fixture(scope="module")
+def english_examples():
+    english_egs = [
+        {
+            "text": "The city of Bern supports building more bike lanes. However, this is controversial. The FDP is clearly against it.",
+            "ent_text": "city of Bern",
+            "statement": "Cycling as a mode of transport should be promoted.",
+            "stance_true": "support",
+        },
+        {
+            "text": "The city of Bern supports building more bike lanes. However, this is controversial. The FDP is clearly against it.",
+            "ent_text": "FDP",
+            "statement": "Cycling as a mode of transport should be promoted.",
+            "stance_true": "opposition",
+        },
+        {
+            "text": "Emily wants to tame parrots.",
+            "ent_text": "Emily",
+            "statement": "Cycling as a mode of transport should be promoted.",
+            "stance_true": "irrelevant",
+        },
+    ]
+    return english_egs
 
 # LOAD MODELS ------------
 

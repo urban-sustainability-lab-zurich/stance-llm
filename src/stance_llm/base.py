@@ -19,44 +19,118 @@ ALLOWED_DUAL_LLM_CHAINS = ["is2"]
 CONSTRAINED_GRAMMAR_CHAINS = ["s2", "is2"]
 
 IRRELEVANCE_ANSWERS = {
-    "irrelevant": "Bezieht keine Stellung",
-    "stance": "Bezieht Stellung",
+    "de": {
+        "irrelevant": "Bezieht keine Stellung",
+        "stance": "Bezieht Stellung",
+    },
+    "en": {
+        "irrelevant": "Does not take a stance",
+        "stance": "Takes a stance",
+    },
 }
 IRRELEVANCE_ANSWERS2 = {
-    "irrelevant": "Bezieht keine Haltung",
-    "stance": "Bezieht eine Haltung",
+    "de": {
+        "irrelevant": "Bezieht keine Haltung",
+        "stance": "Bezieht eine Haltung",
+    },
+    "en": {
+        "irrelevant": "Does not express a position",
+        "stance": "Expresses a position",
+    },
 }
 
 ALLOWED_STANCE_CATEGORIES = ["support", "opposition", "irrelevant", "error"]
 
 
-def construct_irrelevance_prompt(input_text, entity, statement):
-    prompt = f"Analysiere den folgenden Text: {input_text}. Bezieht die Organisation {entity} Stellung zur folgenden Aussage: {statement}? Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS['irrelevant']} oder {IRRELEVANCE_ANSWERS['stance']}"
+def construct_irrelevance_prompt(input_text, entity, statement, language="de"):
+    if language == "en":
+        prompt = (
+            f"Analyze the following text: {input_text}. "
+            f"Does the organization {entity} take a stance on the following statement: {statement}? "
+            f"Refer only to the text. Answer with {IRRELEVANCE_ANSWERS['en']['irrelevant']} or {IRRELEVANCE_ANSWERS['en']['stance']}"
+        )
+    else:
+        prompt = (
+            f"Analysiere den folgenden Text: {input_text}. "
+            f"Bezieht die Organisation {entity} Stellung zur folgenden Aussage: {statement}? "
+            f"Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS['de']['irrelevant']} oder {IRRELEVANCE_ANSWERS['de']['stance']}"
+        )
     return prompt
 
 
-def construct_summary_prompt(input_text, entity):
-    prompt = f"Fasse die Position der Organisation {entity} im folgenden Text zusammen: \n {input_text}. Fasse dich kurz und starte deine Zusammenfassung mit: Die Organisation {entity}..."
+def construct_summary_prompt(input_text, entity, language="de"):
+    if language == "en":
+        prompt = (
+            f"Summarize the position of the organization {entity} in the following text:\n {input_text}. "
+            f"Be brief and start your summary with: The organization {entity}..."
+        )
+    else:
+        prompt = (
+            f"Fasse die Position der Organisation {entity} im folgenden Text zusammen: \n {input_text}. "
+            f"Fasse dich kurz und starte deine Zusammenfassung mit: Die Organisation {entity}..."
+        )
     return prompt
 
 
-def construct_summary_statementspecific_prompt(input_text, entity, statement):
-    prompt = f'Fasse die Position der Organisation {entity} im folgenden Text in Bezug auf die Aussage "{statement}" zusammen: \n {input_text}. \n Fasse dich kurz und starte deine Zusammenfassung mit: Die Organisation {entity}...'
+def construct_summary_statementspecific_prompt(input_text, entity, statement, language="de"):
+    if language == "en":
+        prompt = (
+            f'Summarize the position of the organization {entity} in the following text with respect to the statement "{statement}":\n {input_text}.\n '
+            f"Be brief and start your summary with: The organization {entity}..."
+        )
+    else:
+        prompt = (
+            f'Fasse die Position der Organisation {entity} im folgenden Text in Bezug auf die Aussage "{statement}" zusammen: \n {input_text}. \n '
+            f"Fasse dich kurz und starte deine Zusammenfassung mit: Die Organisation {entity}..."
+        )
     return prompt
 
 
-def construct_general_stance_prompt(input_text, entity):
-    prompt = f"Analysiere den folgenden Text: {input_text}. Äussert die Organisation {entity} eine implizite oder explizite Haltung? Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS2['irrelevant']} oder {IRRELEVANCE_ANSWERS2['stance']}"
+def construct_general_stance_prompt(input_text, entity, language="de"):
+    if language == "en":
+        prompt = (
+            f"Analyze the following text: {input_text}. "
+            f"Does the organization {entity} express an implicit or explicit position? "
+            f"Refer only to the text. Answer with {IRRELEVANCE_ANSWERS2['en']['irrelevant']} or {IRRELEVANCE_ANSWERS2['en']['stance']}"
+        )
+    else:
+        prompt = (
+            f"Analysiere den folgenden Text: {input_text}. "
+            f"Äussert die Organisation {entity} eine implizite oder explizite Haltung? "
+            f"Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS2['de']['irrelevant']} oder {IRRELEVANCE_ANSWERS2['de']['stance']}"
+        )
     return prompt
 
 
-def construct_support_stance_prompt(input_text, entity, statement):
-    prompt = f"Analysiere den folgenden Text: {input_text}. Befürwortet die Organisation {entity} die Aussage: {statement}? Beziehe dich nur auf den Text. Antworte mit Ja oder Nein"
+def construct_support_stance_prompt(input_text, entity, statement, language="de"):
+    if language == "en":
+        prompt = (
+            f"Analyze the following text: {input_text}. "
+            f"Does the organization {entity} support the statement: {statement}? "
+            f"Refer only to the text. Answer with Yes or No"
+        )
+    else:
+        prompt = (
+            f"Analysiere den folgenden Text: {input_text}. "
+            f"Befürwortet die Organisation {entity} die Aussage: {statement}? "
+            f"Beziehe dich nur auf den Text. Antworte mit Ja oder Nein"
+        )
     return prompt
 
 
-def construct_opposition_stance_prompt(input_text, entity, statement):
-    prompt = f"Analysiere den folgenden Text: {input_text}. Lehnt die Organisation {entity} folgende die Aussage ab: {statement}? Beziehe dich nur auf den Text. Antworte mit Ja oder Nein"
+def construct_opposition_stance_prompt(input_text, entity, statement, language="de"):
+    if language == "en":
+        prompt = (
+            f"Analyze the following text: {input_text}. "
+            f"Does the organization {entity} oppose the statement: {statement}? "
+            f"Refer only to the text. Answer with Yes or No"
+        )
+    else:
+        prompt = (
+            f"Analysiere den folgenden Text: {input_text}. "
+            f"Lehnt die Organisation {entity} folgende die Aussage ab: {statement}? "
+            f"Beziehe dich nur auf den Text. Antworte mit Ja oder Nein"
+        )
     return prompt
 
 
@@ -108,7 +182,7 @@ class StanceClassification:
         return self
 
     def summarize_irrelevant_stance_chain(
-        self, llm, chat: bool, llm2=None, log=True
+        self, llm, chat: bool, llm2=None, log=True, language="de"
     ) -> Self:
         """prompt chain that:
            1. summarises text (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
@@ -121,6 +195,7 @@ class StanceClassification:
             chat (bool): whether llm is a chat llm or not
             llm2 (optional): A second guidance model backend from guidance.models. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
+            language (str): "de" or "en"
 
         Returns:
             StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
@@ -128,7 +203,7 @@ class StanceClassification:
         if log:
             logger.info(f"Summarizing position of {self.entity}")
         summary_prompt = construct_summary_prompt(
-            input_text=self.masked_input_text, entity=self.masked_entity
+            input_text=self.masked_input_text, entity=self.masked_entity, language=language
         )
         if chat:
             with user():
@@ -146,39 +221,45 @@ class StanceClassification:
             input_text=summary["summary"],
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
         if chat:
             with user():
                 irrelevance = llm + irrelevance_prompt
             with assistant():
                 irrelevance = irrelevance + select(
-                    list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                    list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                 )
         if not chat:
             irrelevance = (
                 llm
                 + irrelevance_prompt
-                + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
             )
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
             self.stance = "irrelevant"
             stance = None
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
             stance_prompt = construct_support_stance_prompt(
                 input_text=summary["summary"],
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
             if chat:
                 with user():
                     stance = llm + stance_prompt
                 with assistant():
-                    stance = stance + select(["Ja", "Nein"], name="answer")
+                    stance = stance + select(
+                        ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                    )
             if not chat:
-                stance = llm + stance_prompt + select(["Ja", "Nein"], name="answer")
-            if stance["answer"] == "Ja":
+                stance = llm + stance_prompt + select(
+                    ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                )
+            if stance["answer"] in ["Ja", "Yes"]:
                 self.stance = "support"
-            if stance["answer"] == "Nein":
+            if stance["answer"] in ["Nein", "No"]:
                 self.stance = "opposition"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -188,7 +269,7 @@ class StanceClassification:
         return self
 
     def summarize_v2_irrelevant_stance_chain(
-        self, llm, chat: bool, llm2=None, log=True
+        self, llm, chat: bool, llm2=None, log=True, language="de"
     ) -> Self:
         """prompt chain that:
            1. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
@@ -201,9 +282,10 @@ class StanceClassification:
             chat (bool): whether llm it is a chat llm or not
             llm2 (optional): A second guidance model backend from guidance.models. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
+            language (str): "de" or "en"
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance, summary, and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification class object returned: e.g. meta["llms"]["irrelevance"].
         """
 
         if log:
@@ -212,6 +294,7 @@ class StanceClassification:
             input_text=self.masked_input_text,
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
         if chat:
             with user():
@@ -229,39 +312,45 @@ class StanceClassification:
             input_text=summary["summary"],
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
         if chat:
             with user():
                 irrelevance = llm + irrelevance_prompt
             with assistant():
                 irrelevance = irrelevance + select(
-                    list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                    list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                 )
         if not chat:
             irrelevance = (
                 llm
                 + irrelevance_prompt
-                + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
             )
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
             self.stance = "irrelevant"
             stance = None
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
             stance_prompt = construct_support_stance_prompt(
                 input_text=summary["summary"],
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
             if chat:
                 with user():
                     stance = llm + stance_prompt
                 with assistant():
-                    stance = stance + select(["Ja", "Nein"], name="answer")
+                    stance = stance + select(
+                        ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                    )
             if not chat:
-                stance = llm + stance_prompt + select(["Ja", "Nein"], name="answer")
-            if stance["answer"] == "Ja":
+                stance = llm + stance_prompt + select(
+                    ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                )
+            if stance["answer"] in ["Ja", "Yes"]:
                 self.stance = "support"
-            if stance["answer"] == "Nein":
+            if stance["answer"] in ["Nein", "No"]:
                 self.stance = "opposition"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -270,7 +359,7 @@ class StanceClassification:
         }
         return self
 
-    def summarize_v2_chain(self, llm, chat: bool, llm2=None, log=True) -> Self:
+    def summarize_v2_chain(self, llm, chat: bool, llm2=None, log=True, language="de") -> Self:
         """prompt chain that:
            1. summarises text in relation to the statement (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["summary"])
            2. prompts llm directly to classify the detected actor's stance based on the summary, stance class labels to select from: irrelevant, opposition, support
@@ -278,12 +367,13 @@ class StanceClassification:
         Args:
             self: StanceClassification class object, contains: entity, statement, input_text, stance
             llm: A guidance model backend from guidance.models
-            chat (bool): whether llm it is a chat llm or not
+            chat (bool): whether llm is a chat llm or not
             llm2 (optional): A second guidance model backend from guidance.models. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
+            language (str): "de" or "en"
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. The summary prompt text is stored in a dictionary value at the key ["llms"]["summary"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned.
+            StanceClassification class object with new class object attributes: meta and stance. The summary prompt text is stored in a dictionary value at the key ["llms"]["summary"] in a dictionary stored in the "meta" attribute of the StanceClassification class object returned.
         """
 
         if log:
@@ -292,19 +382,30 @@ class StanceClassification:
             input_text=self.masked_input_text,
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
+        if language == "en":
+            stance_options = [
+                "does not express a position that",
+                "supports that",
+                "opposes that",
+            ]
+            stance_prefix = f"The organization {self.masked_entity} "
+        else:
+            stance_options = [
+                "drückt keine Haltung aus dazu, dass",
+                "unterstützt, dass",
+                "lehnt ab, dass",
+            ]
+            stance_prefix = f"Die Organisation {self.masked_entity} "
         if chat:
             with user():
                 summary = llm + summary_prompt
             with assistant():
                 summary += (
-                    f"Die Organisation {self.masked_entity} "
+                    stance_prefix
                     + select(
-                        [
-                            "drückt keine Haltung aus dazu, dass",
-                            "unterstützt, dass",
-                            "lehnt ab, dass",
-                        ],
+                        stance_options,
                         name="stance",
                     )
                     + gen(name="summary", max_tokens=80)
@@ -313,13 +414,9 @@ class StanceClassification:
             summary = (
                 llm
                 + summary_prompt
-                + f"Die Organisation {self.masked_entity} "
+                + stance_prefix
                 + select(
-                    [
-                        "drückt keine Haltung aus dazu, dass",
-                        "unterstützt, dass",
-                        "lehnt ab, dass",
-                    ],
+                    stance_options,
                     name="stance",
                 )
                 + gen(name="summary", max_tokens=80)
@@ -328,11 +425,11 @@ class StanceClassification:
             logger.info(
                 f"Basing classification on position summary: {self.entity} {summary['stance']} {summary['summary']}"
             )
-        if summary["stance"] == "drückt keine Haltung aus dazu, dass":
+        if summary["stance"] == stance_options[0]:
             self.stance = "irrelevant"
-        if summary["stance"] == "unterstützt, dass":
+        if summary["stance"] == stance_options[1]:
             self.stance = "support"
-        if summary["stance"] == "lehnt ab, dass":
+        if summary["stance"] == stance_options[2]:
             self.stance = "opposition"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -343,7 +440,7 @@ class StanceClassification:
         }
         return self
 
-    def irrelevant_summarize_v2_chain(self, llm, chat, llm2=None, log=True) -> Self:
+    def irrelevant_summarize_v2_chain(self, llm, chat, llm2=None, log=True, language="de") -> Self:
         """prompt chain that:
            1. classifies whether the detected actor has a stance in the text related to the statement, or not (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance"])
            2. if actor has a related stance: continue with 3., if not: stance=irrelevance (saved as a new class attribute called stance)
@@ -355,9 +452,10 @@ class StanceClassification:
             chat (bool): whether llm it is a chat llm or not
             llm2 (optional): A second guidance model backend from guidance.models. Generates the summary and classifies the stance. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
+            language (str): "de" or "en"
 
         Returns:
-            StanceClassification class object with new class object attributes: meta and stance. The irrelevance and summary prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned: e.g. meta["llms"]["irrelevance"].
+            StanceClassification class object with new class object attributes: meta and stance. The irrelevance and summary prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification class object returned: e.g. meta["llms"]["irrelevance"].
         """
         if llm2 is None:
             llm2 = llm
@@ -368,41 +466,53 @@ class StanceClassification:
             input_text=self.masked_input_text,
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
         if chat:
             with user():
                 irrelevance = llm + irrelevance_prompt
             with assistant():
                 irrelevance = irrelevance + select(
-                    list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                    list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                 )
         if not chat:
             irrelevance = (
                 llm
                 + irrelevance_prompt
-                + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
             )
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
             self.stance = "irrelevant"
             summary = None
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
             summary_prompt = construct_summary_statementspecific_prompt(
                 input_text=self.masked_input_text,
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
+            if language == "en":
+                stance_options = [
+                    "does not express a position that",
+                    "supports that",
+                    "opposes that",
+                ]
+                stance_prefix = f"The organization {self.masked_entity} "
+            else:
+                stance_options = [
+                    "drückt keine Haltung aus dazu, dass",
+                    "unterstützt, dass",
+                    "lehnt ab, dass",
+                ]
+                stance_prefix = f"Die Organisation {self.masked_entity} "
             if chat:
                 with user():
                     summary = llm2 + summary_prompt
                 with assistant():
                     summary += (
-                        f"Die Organisation {self.masked_entity} "
+                        stance_prefix
                         + select(
-                            [
-                                "drückt keine Haltung aus dazu, dass",
-                                "unterstützt, dass",
-                                "lehnt ab, dass",
-                            ],
+                            stance_options,
                             name="stance",
                         )
                         + gen(name="summary", max_tokens=80)
@@ -411,13 +521,9 @@ class StanceClassification:
                 summary = (
                     llm2
                     + summary_prompt
-                    + f"Die Organisation {self.masked_entity} "
+                    + stance_prefix
                     + select(
-                        [
-                            "drückt keine Haltung aus dazu, dass",
-                            "unterstützt, dass",
-                            "lehnt ab, dass",
-                        ],
+                        stance_options,
                         name="stance",
                     )
                     + gen(name="summary", max_tokens=80)
@@ -426,11 +532,11 @@ class StanceClassification:
                 logger.info(
                     f"Basing classification on position summary: {self.entity} {summary['stance']} {summary['summary']}"
                 )
-            if summary["stance"] == "drückt keine Haltung aus dazu, dass":
+            if summary["stance"] == stance_options[0]:
                 self.stance = "irrelevant"
-            if summary["stance"] == "unterstützt, dass":
+            if summary["stance"] == stance_options[1]:
                 self.stance = "support"
-            if summary["stance"] == "lehnt ab, dass":
+            if summary["stance"] == stance_options[2]:
                 self.stance = "opposition"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -442,7 +548,7 @@ class StanceClassification:
         }
         return self
 
-    def irrelevant_stance_chain(self, llm, chat: bool, llm2=None, log=True) -> Self:
+    def irrelevant_stance_chain(self, llm, chat: bool, llm2=None, log=True, language="de") -> Self:
         """prompt chain that:
            1. classifies whether the detected actor has a stance in the text related to the statement, or not (the irrelevance prompt text is stored in a dictionary value at the key ["llms"]["irrelevance"] in the "meta" attribute)
            2. if actor has a related stance: classify stance as support or not support, if no related stance: stance=irrelevant (saves stance prompt in the "meta" attribute at the dictionary key ["llms"]["stance"] and the predicted stance separately in the class attribute "stance")
@@ -454,6 +560,7 @@ class StanceClassification:
             chat (bool): whether llm it is a chat llm or not
             llm2 (optional): A second guidance model backend from guidance.models. Defaults to None.
             log (bool, optional): To log or not. Defaults to True.
+            language (str): "de" or "en"
 
         Returns:
             StanceClassification class object with new class object attributes: meta and stance. The irrelevance and stance prompt texts are stored in a dictionary value at the key ["llms"] in a dictionary stored in the "meta" attribute of the StanceClassification object returned, e.g. meta["llms"]["stance"]
@@ -468,39 +575,45 @@ class StanceClassification:
             input_text=self.masked_input_text,
             entity=self.masked_entity,
             statement=self.statement,
+            language=language,
         )
         if chat:
             with user():
                 irrelevance = llm + irrelevance_prompt
             with assistant():
                 irrelevance = irrelevance + select(
-                    list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                    list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                 )
         if not chat:
             irrelevance = (
                 llm
                 + irrelevance_prompt
-                + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
             )
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
             self.stance = "irrelevant"
             stance = None
-        if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+        if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
             stance_prompt = construct_support_stance_prompt(
                 input_text=self.masked_input_text,
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
             if chat:
                 with user():
                     stance = llm + stance_prompt
                 with assistant():
-                    stance = stance + select(["Ja", "Nein"], name="answer")
+                    stance = stance + select(
+                        ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                    )
             if not chat:
-                stance = llm + stance_prompt + select(["Ja", "Nein"], name="answer")
-            if stance["answer"] == "Ja":
+                stance = llm + stance_prompt + select(
+                    ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                )
+            if stance["answer"] in ["Ja", "Yes"]:
                 self.stance = "support"
-            if stance["answer"] == "Nein":
+            if stance["answer"] in ["Nein", "No"]:
                 self.stance = "opposition"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -508,7 +621,7 @@ class StanceClassification:
         return self
 
     def nested_irrelevant_summary_explicit(
-        self, llm, chat: bool, llm2=None, log=True
+        self, llm, chat: bool, llm2=None, log=True, language="de"
     ) -> Self:
         """prompt chain that:
            1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance_general"])
@@ -531,27 +644,27 @@ class StanceClassification:
             logger.info(f"Analyzing if {self.entity} has position")
             logger.info("Checking potential stance...")
         general_prompt = construct_general_stance_prompt(
-            input_text=self.masked_input_text, entity=self.masked_entity
+            input_text=self.masked_input_text, entity=self.masked_entity, language=language
         )
         if chat:
             with user():
                 irrelevance_general = llm + general_prompt
             with assistant():
                 irrelevance_general = irrelevance_general + select(
-                    list(IRRELEVANCE_ANSWERS2.values()), name="answer_general"
+                    list(IRRELEVANCE_ANSWERS2[language].values()), name="answer_general"
                 )
         if not chat:
             irrelevance_general = (
                 llm
                 + general_prompt
-                + select(list(IRRELEVANCE_ANSWERS2.values()), name="answer_general")
+                + select(list(IRRELEVANCE_ANSWERS2[language].values()), name="answer_general")
             )
-        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2[language]["irrelevant"]:
             self.stance = "irrelevant"
             irrelevance = None
             stance = None
             summary = None
-        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2[language]["stance"]:
             if log:
                 logger.info(
                     f"Analyzing if {self.entity} supports statement {self.statement}"
@@ -561,29 +674,30 @@ class StanceClassification:
                 input_text=self.masked_input_text,
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
             if chat:
                 with user():
                     irrelevance = llm + irrelevance_prompt
                 with assistant():
                     irrelevance = irrelevance + select(
-                        list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                        list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                     )
             if not chat:
                 irrelevance = (
                     llm
                     + irrelevance_prompt
-                    + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                    + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
                 )
-            if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+            if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
                 self.stance = "irrelevant"
                 stance = None
                 summary = None
-            if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+            if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
                 if log:
                     logger.info(f"Summarizing position of {self.entity}")
                 summary_prompt = construct_summary_prompt(
-                    input_text=self.masked_input_text, entity=self.masked_entity
+                    input_text=self.masked_input_text, entity=self.masked_entity, language=language
                 )
                 if chat:
                     with user():
@@ -602,34 +716,44 @@ class StanceClassification:
                     input_text=summary["summary"],
                     entity=self.masked_entity,
                     statement=self.statement,
+                    language=language,
                 )
                 if chat:
                     with user():
                         stance = llm + stance_prompt
                     with assistant():
-                        stance = stance + select(["Ja", "Nein"], name="answer")
+                        stance = stance + select(
+                            ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                        )
                 if not chat:
-                    stance = llm + stance_prompt + select(["Ja", "Nein"], name="answer")
-                if stance["answer"] == "Ja":
+                    stance = llm + stance_prompt + select(
+                        ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                    )
+                if stance["answer"] in ["Ja", "Yes"]:
                     self.stance = "support"
-                if stance["answer"] == "Nein":
+                if stance["answer"] in ["Nein", "No"]:
                     stance_prompt = construct_opposition_stance_prompt(
                         input_text=summary["summary"],
                         entity=self.masked_entity,
                         statement=self.statement,
+                        language=language,
                     )
                     if chat:
                         with user():
                             stance = llm + stance_prompt
                         with assistant():
-                            stance = stance + select(["Ja", "Nein"], name="answer")
+                            stance = stance + select(
+                                ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                            )
                     if not chat:
                         stance = (
-                            llm + stance_prompt + select(["Ja", "Nein"], name="answer")
+                            llm + stance_prompt + select(
+                                ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                            )
                         )
-                    if stance["answer"] == "Ja":
+                    if stance["answer"] in ["Ja", "Yes"]:
                         self.stance = "opposition"
-                    if stance["answer"] == "Nein":
+                    if stance["answer"] in ["Nein", "No"]:
                         self.stance = "irrelevant"
         if log:
             logger.info(f"classified as {self.stance}")
@@ -644,7 +768,7 @@ class StanceClassification:
         return self
 
     def nested_irrelevant_summary_v2_explicit(
-        self, llm, chat: bool, llm2=None, log=True
+        self, llm, chat: bool, llm2=None, log=True, language="de"
     ) -> Self:
         """prompt chain that:
            1. checks if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant (stored in the "meta" attribute of the StanceClassification class object in a dictionary value at the key ["llms"]["irrelevance_general"])
@@ -667,7 +791,7 @@ class StanceClassification:
             logger.info(f"Analyzing if {self.entity} has position")
             logger.info("Checking potential stance...")
         general_prompt = construct_general_stance_prompt(
-            input_text=self.masked_input_text, entity=self.masked_entity
+            input_text=self.masked_input_text, entity=self.masked_entity, language=language
         )
         if chat:
             with user():
@@ -682,12 +806,12 @@ class StanceClassification:
                 + general_prompt
                 + select(list(IRRELEVANCE_ANSWERS2.values()), name="answer_general")
             )
-        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["irrelevant"]:
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2[language]["irrelevant"]:
             self.stance = "irrelevant"
             irrelevance = None
             stance = None
             summary = None
-        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2["stance"]:
+        if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2[language]["stance"]:
             if log:
                 logger.info(
                     f"Analyzing if {self.entity} supports statement {self.statement}"
@@ -697,31 +821,33 @@ class StanceClassification:
                 input_text=self.masked_input_text,
                 entity=self.masked_entity,
                 statement=self.statement,
+                language=language,
             )
             if chat:
                 with user():
                     irrelevance = llm + irrelevance_prompt
                 with assistant():
                     irrelevance = irrelevance + select(
-                        list(IRRELEVANCE_ANSWERS.values()), name="answer"
+                        list(IRRELEVANCE_ANSWERS[language].values()), name="answer"
                     )
             if not chat:
                 irrelevance = (
                     llm
                     + irrelevance_prompt
-                    + select(list(IRRELEVANCE_ANSWERS.values()), name="answer")
+                    + select(list(IRRELEVANCE_ANSWERS[language].values()), name="answer")
                 )
-            if irrelevance["answer"] == IRRELEVANCE_ANSWERS["irrelevant"]:
+            if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["irrelevant"]:
                 self.stance = "irrelevant"
                 stance = None
                 summary = None
-            if irrelevance["answer"] == IRRELEVANCE_ANSWERS["stance"]:
+            if irrelevance["answer"] == IRRELEVANCE_ANSWERS[language]["stance"]:
                 if log:
                     logger.info(f"Summarizing position of {self.entity}")
                 summary_prompt = construct_summary_statementspecific_prompt(
                     input_text=self.masked_input_text,
                     entity=self.masked_entity,
                     statement=self.statement,
+                    language=language,
                 )
                 if chat:
                     with user():
@@ -739,34 +865,44 @@ class StanceClassification:
                     input_text=summary["summary"],
                     entity=self.masked_entity,
                     statement=self.statement,
+                    language=language,
                 )
                 if chat:
                     with user():
                         stance = llm + stance_prompt
                     with assistant():
-                        stance = stance + select(["Ja", "Nein"], name="answer")
+                        stance = stance + select(
+                            ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                        )
                 if not chat:
-                    stance = llm + stance_prompt + select(["Ja", "Nein"], name="answer")
-                if stance["answer"] == "Ja":
+                    stance = llm + stance_prompt + select(
+                        ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                    )
+                if stance["answer"] in ["Ja", "Yes"]:
                     self.stance = "support"
-                if stance["answer"] == "Nein":
+                if stance["answer"] in ["Nein", "No"]:
                     stance_prompt = construct_opposition_stance_prompt(
                         input_text=summary["summary"],
                         entity=self.masked_entity,
                         statement=self.statement,
+                        language=language,
                     )
                     if chat:
                         with user():
                             stance = llm + stance_prompt
                         with assistant():
-                            stance = stance + select(["Ja", "Nein"], name="answer")
+                            stance = stance + select(
+                                ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                            )
                     if not chat:
                         stance = (
-                            llm + stance_prompt + select(["Ja", "Nein"], name="answer")
+                            llm + stance_prompt + select(
+                                ["Ja", "Nein"] if language == "de" else ["Yes", "No"], name="answer"
+                            )
                         )
-                    if stance["answer"] == "Ja":
+                    if stance["answer"] in ["Ja", "Yes"]:
                         self.stance = "opposition"
-                    if stance["answer"] == "Nein":
+                    if stance["answer"] in ["Nein", "No"]:
                         self.stance = "irrelevant"
         if log:
             logger.info(f"classified as {self.stance}")

@@ -1,19 +1,29 @@
-# stance-llm: German LLM prompts for stance detection
+# stance-llm: German and English LLM prompts for stance detection
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/stance-llm)
 ![PyPI](https://img.shields.io/pypi/v/stance-llm?label=pypi%20package)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/stance-llm)
 
-Classify stances of entities related to a statement in German text using large language models (LLMs). 
+Classify stances of entities related to a statement in German or English text using large language models (LLMs). 
+
+---
+
+## v0.3.0: English prompt support added
+
+> **New:** stance-llm now supports both German (`"de"`) and English (`"en"`) prompt chains.  
+> You can select the language for all main functions (`detect_stance`, `process`, etc.) via the `language` parameter.
+> - All prompt templates and answer options are available in both languages.
+> - The default is `"de"` (German) for backward compatibility.
+> - See [`docs/prompt-chains.md`](docs/prompt-chains.md) for the exact prompt texts in both languages.
 
 stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
 
 stance-llm offers several prompt chains to choose from to classify stances (see [implemented prompt chains](#implemented-prompt-chains)). At its core, in terms of input and output, you choose an LLM, choose one of several prompt chain options, and then you feed stance-llm a list of dictionaries in the form:
 
 ```
-[{"text":<German-text-to-analyze>, 
+[{"text":<German-or-English-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}]
+"statement": <the (German or English) statement to evaluate stance of entity toward>}]
 ```
 
 for example:
@@ -44,7 +54,7 @@ For this general, hard task, the use of LLMs, as task-unspecific, general models
 
 ## Installation
 
-> ⚠️ `stance-llm` requires **Python 3.10** or higher.
+> ⚠️ `stance-llm` requires **Python 3.12** or higher.
 
 stance-llm is available through PyPI:
 ```bash
