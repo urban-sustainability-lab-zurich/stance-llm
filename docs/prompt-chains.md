@@ -2,6 +2,8 @@
 
 This document outlines the exact prompts used in the stance-llm system for both German (`de`) and English (`en`). Each prompt construction function is shown with its template in both languages.
 
+The different prompt chains (see the main Readme and the figures in docs/figures) combine these different functions in different control flows.
+
 ---
 
 ## 1. Irrelevance Prompt
