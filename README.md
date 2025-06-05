@@ -43,9 +43,9 @@ Going beyond basic functionality, stance-llm currently allows for [entity maskin
 
 ## Motivation
 
-We developed and evaluated a number of different German LLM prompts during a research project ([ available here](https://osf.io/preprints/socarxiv/5a3k8_v1)). 
+We developed and evaluated a number of different German LLM prompts during a research project ([pre-print available here](https://osf.io/preprints/socarxiv/5a3k8_v1)). 
 At this stage, stance-llm provides an interface to easily use these specific, [different prompt chains](#implemented-prompt-chains) on your own data and getting structured output back.
-Thus we provide a way to easily leverage LLMs for stance classification of named entities regarding an arbitrary statement in German text.
+Thus we provide a way to easily leverage LLMs for stance classification of named entities regarding an arbitrary statement in German and English text.
 
 We generally believe that the hype around LLMs for many NLP tasks is overblown (for many reasons).
 
@@ -61,7 +61,7 @@ stance-llm is available through PyPI:
 pip install stance-llm
 ```
 
-### Development Setup Using UV
+### Development setup using uv
 
 To set up the development environment and install dependencies using `uv`, run:
 
@@ -93,9 +93,9 @@ Your data could look like this:
 To use the data with stance-llm, turn your data into a list of dictionaries of the form:
 
 ```
-[{"text":<German-text-to-analyze>, 
+[{"text":<German-or-English-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}]
+"statement": <the (German or English) statement to evaluate stance of entity toward>}]
 ```
 
 Optionally, per item in the list of dictionaries:
@@ -226,7 +226,7 @@ Theoretically, prompt chains (currently only implemented for [is2](#is2)) can us
 
 ## Implemented prompt chains
 
-Feel free to play around with those. We will have a preprint out soon on which chains worked best on our specific data (which might be really different from yours).
+Feel free to play around with those. We have a [pre-print available here](https://osf.io/preprints/socarxiv/5a3k8_v1) on which chains worked best on our very specific data we developped this tool for (which might be really different from yours).
 
 ### is
 ![is_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/is_prompt_illu.svg)
@@ -283,7 +283,6 @@ Feel free to play around with those. We will have a preprint out soon on which c
 
 For future releases, we could envision at least:
 - a closer integration with spacy doc objects
-- extending chains to different languages
 - providing an interface for providing custom prompt chains
 
 Get in touch if you want to contribute.
