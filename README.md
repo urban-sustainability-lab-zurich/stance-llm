@@ -126,14 +126,6 @@ from guidance import models
 disco7b = models.Transformers("DiscoResearch/DiscoLM_German_7b_v1")
 ```
 
-or maybe you want to use OpenAI's servers to do the work for you (*wiederwillig* or *zähneknirschend*, as we say in German).
-
-```python
-from guidance import models
-
-gpt35 = models.OpenAI("gpt-3.5-turbo",api_key=<your-API-key>)
-```
-
 Let's create some test data:
 
 ```python
@@ -157,7 +149,7 @@ from stance_llm.process import detect_stance
 
 classification = detect_stance(
             eg = test_examples[0], #we run this on the first example only
-            llm = gpt35,
+            llm = disco7b,
             chain_label = "is" # This is where we choose our prompt chain
         )
 ```
@@ -177,10 +169,10 @@ from stance_llm.process import process
 
 process(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<folder-to-your-output-folder>,
     chain_used="is", #here, we choose our prompt chain
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True)
 ```
 
@@ -191,10 +183,10 @@ from stance_llm.process import process_evaluate
 
 process_evaluate(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<folder-to-your-output-folder>,
     chain_used="is",
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True)
 ```
 
@@ -205,10 +197,10 @@ LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this
 ```python
 process(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<path-to-your-output-folder>,
     chain_used="is",
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True,
     entity_mask="Organisation X" #this string will be used to mask the entity
     )
@@ -222,7 +214,7 @@ Generally, you should get a warning (via guidance) if you use a chat version wit
 
 ### Use of multiple LLMs in one prompt chain
 
-Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, for example, in [is2](#is2), a locally hosted model (like Disco LM) for the classification part and a model accessed through an API for the irrelevance check part (like GPT-3.5). Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
+Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, for example, in [is2](#is2), a locally hosted model (like Disco LM) for the classification part and a model accessed through an API for the irrelevance check part. Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
 
 ## Implemented prompt chains
 
@@ -296,10 +288,4 @@ Run tests with:
 
 ```bash
 uv run pytest
-```
-
-Some of the tests send a small example to the OpenAI API. To run them, you need to set a variable `OPEN_AI_KEY` in a `.env` file like:
-
-```.env
-OPEN_AI_KEY='<your-api-key>'
 ```
