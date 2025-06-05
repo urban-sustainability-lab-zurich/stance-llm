@@ -16,7 +16,7 @@ authors = [
 urls = { repository = "https://github.com/urban-sustainability-lab-zurich/stance-llm" }
 
 dependencies = [
-    "guidance >=0.1.10",
+    "guidance >=0.2.0",
     "loguru >=0.7.2",
     "tqdm >=4.65.0",
     "polars >=0.20.15",

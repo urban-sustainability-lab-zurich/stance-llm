@@ -6,10 +6,10 @@ from stance_llm.process import process, process_evaluate
 from stance_llm.base import ALLOWED_STANCE_CATEGORIES
 
 
-def test_process_creates_folder_contents(test_examples, gpt35_openai, test_output_dir):
+def test_process_creates_folder_contents(test_examples, gpt2_trf, test_output_dir):
     process(
         egs=test_examples,
-        llm=gpt35_openai,
+        llm=gpt2_trf,
         export_folder=test_output_dir,
         chain_used="s2is",
         model_used="gpt35",
@@ -23,10 +23,10 @@ def test_process_creates_folder_contents(test_examples, gpt35_openai, test_outpu
     assert "meta.json" in file_list
 
 
-def test_process_outputs_classifications(test_examples, gpt35_openai, test_output_dir):
+def test_process_outputs_classifications(test_examples, gpt2_trf, test_output_dir):
     process(
         egs=test_examples,
-        llm=gpt35_openai,
+        llm=gpt2_trf,
         export_folder=test_output_dir,
         chain_used="s2is",
         model_used="gpt35",
@@ -50,11 +50,11 @@ def test_process_outputs_classifications(test_examples, gpt35_openai, test_outpu
 
 
 def test_process_evaluate_creates_folder_contents(
-    test_examples, gpt35_openai, test_output_dir
+    test_examples, gpt2_trf, test_output_dir
 ):
     process_evaluate(
         egs=test_examples,
-        llm=gpt35_openai,
+        llm=gpt2_trf,
         export_folder=test_output_dir,
         chain_used="s2is",
         model_used="gpt35",

@@ -1312,7 +1312,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "guidance", specifier = ">=0.1.10" },
+    { name = "guidance", specifier = ">=0.2.0" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "numpy", specifier = "==1.26.4" },
     { name = "polars", specifier = ">=0.20.15" },

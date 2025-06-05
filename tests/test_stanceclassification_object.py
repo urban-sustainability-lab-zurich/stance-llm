@@ -4,7 +4,7 @@ import os
 import shutil
 from unittest.mock import Mock
 
-from stance_llm.base import StanceClassification, get_registered_chains, get_registered_chains_keys, REGISTERED_LLM_CHAINS
+from stance_llm.base import StanceClassification, get_registered_chains, get_registered_chains_keys
 from stance_llm.process import detect_stance, make_export_folder
 
 
