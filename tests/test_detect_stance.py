@@ -21,12 +21,21 @@ def test_detect_stance_returns_stance(
         for run in stance_detection_runs_trf
     )
 
-def test_detect_stance_english_prompt(english_examples, gpt2_trf):
-    """Test detect_stance returns correct object and stance for English prompt"""
-    for eg in english_examples:
-        result = detect_stance(eg, llm=gpt2_trf, chain_label="s2is", language="en")
-        assert isinstance(result, StanceClassification)
-        assert result.stance in ALLOWED_STANCE_CATEGORIES
+def test_detect_stance_returns_correct_object_english_trf(stance_detection_runs_english_trf):
+    """Test if English stance detection runs with Transformers backend return an object of type StanceClassification"""
+    for run in stance_detection_runs_english_trf:
+        run.language = "en"
+    assert all(
+        isinstance(run, StanceClassification) for run in stance_detection_runs_english_trf
+    )
+
+def test_detect_stance_returns_stance_english(stance_detection_runs_english_trf):
+    """Test if English stance detection runs return a stance as a string and that the string is in an allowed category"""
+    assert all(isinstance(run.stance, str) for run in stance_detection_runs_english_trf)
+    assert all(
+        run.stance in ALLOWED_STANCE_CATEGORIES
+        for run in stance_detection_runs_english_trf
+    )
 
 def test_process_language_selection(test_examples, english_examples, gpt2_trf, tmp_path):
     """Test process runs with both German and English prompt chains"""

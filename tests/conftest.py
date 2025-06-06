@@ -79,6 +79,17 @@ def stance_detection_runs_trf(test_examples, gpt2_trf):
             classifications.append(classification)
     return classifications
 
+@pytest.fixture(scope="module")
+def stance_detection_runs_english_trf(english_examples, gpt2_trf):
+    classifications = []
+    for chain in REGISTERED_LLM_CHAINS:
+        for test_eg in english_examples:
+            classification = detect_stance(
+                eg=test_eg, llm=gpt2_trf, chain_label=chain, language="en"
+            )
+            classifications.append(classification)
+    return classifications
+
 # masked, single chain as example
 
 @pytest.fixture(scope="module")

@@ -798,13 +798,13 @@ class StanceClassification:
                 irrelevance_general = llm + general_prompt
             with assistant():
                 irrelevance_general = irrelevance_general + select(
-                    list(IRRELEVANCE_ANSWERS2.values()), name="answer_general"
+                    list(IRRELEVANCE_ANSWERS2[language].values()), name="answer_general"
                 )
         if not chat:
             irrelevance_general = (
                 llm
                 + general_prompt
-                + select(list(IRRELEVANCE_ANSWERS2.values()), name="answer_general")
+                + select(list(IRRELEVANCE_ANSWERS2[language].values()), name="answer_general")
             )
         if irrelevance_general["answer_general"] == IRRELEVANCE_ANSWERS2[language]["irrelevant"]:
             self.stance = "irrelevant"
