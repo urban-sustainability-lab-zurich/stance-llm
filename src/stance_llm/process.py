@@ -16,8 +16,44 @@ from stance_llm.base import (
 )
 
 
+# Chain method mapping - exported for testing
+CHAIN_METHOD_LABELS = {
+    "sis": "summarize_irrelevant_stance_chain",
+    "is": "irrelevant_stance_chain", 
+    "nise": "nested_irrelevant_summary_explicit",
+    "s2is": "summarize_v2_irrelevant_stance_chain",
+    "s2": "summarize_v2_chain",
+    "is2": "irrelevant_summarize_v2_chain",
+    "nis2e": "nested_irrelevant_summary_v2_explicit",
+}
+
+
+def get_chain_method_map(task: StanceClassification) -> dict:
+    """Get the mapping of chain labels to their corresponding methods.
+    
+    Args:
+        task: A StanceClassification instance to get methods from
+        
+    Returns:
+        Dictionary mapping chain labels to their corresponding methods
+    """
+    return {
+        label: getattr(task, method_name) 
+        for label, method_name in CHAIN_METHOD_LABELS.items()
+    }
+
+
+def get_available_chain_labels() -> list:
+    """Get list of available chain labels for testing.
+    
+    Returns:
+        List of available chain label strings
+    """
+    return list(CHAIN_METHOD_LABELS.keys())
+
+
 def detect_stance(
-    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None
+    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None, language="de"
 ) -> Self:
     """Detect stance of an entity in a dictionary input
 
@@ -54,30 +90,13 @@ def detect_stance(
     task = StanceClassification(input_text=text, statement=statement, entity=entity)
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
-    if chain_label == "sis":
-        classification = task.summarize_irrelevant_stance_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "is":
-        classification = task.irrelevant_stance_chain(llm=llm, chat=chat, llm2=llm2)
-    if chain_label == "nise":
-        classification = task.nested_irrelevant_summary_explicit(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "s2is":
-        classification = task.summarize_v2_irrelevant_stance_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "s2":
-        classification = task.summarize_v2_chain(llm=llm, chat=chat, llm2=llm2)
-    if chain_label == "is2":
-        classification = task.irrelevant_summarize_v2_chain(
-            llm=llm, chat=chat, llm2=llm2
-        )
-    if chain_label == "nis2e":
-        classification = task.nested_irrelevant_summary_v2_explicit(
-            llm=llm, chat=chat, llm2=llm2
-        )
+
+    chain_method_map = get_chain_method_map(task)
+    classification_func = chain_method_map.get(chain_label)
+    if classification_func is None:
+        raise NameError(f"Chain label {chain_label} is not supported")
+    # Pass language to all chains
+    classification = classification_func(llm=llm, chat=chat, llm2=llm2, language=language)
     return classification
 
 
@@ -136,6 +155,7 @@ def process(
     chat=True,
     llm2=None,
     entity_mask=None,
+    language="de",
 ):
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
@@ -168,6 +188,7 @@ def process(
                 chat=chat,
                 llm2=llm2,
                 entity_mask=entity_mask,
+                language=language,
             )
             eg["run_alias"] = run_alias
             eg["stance_pred"] = eg["stance_classification"].stance

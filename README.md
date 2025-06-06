@@ -1,19 +1,29 @@
-# stance-llm: German LLM prompts for stance detection
+# stance-llm: German and English LLM prompts for stance detection
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/stance-llm)
 ![PyPI](https://img.shields.io/pypi/v/stance-llm?label=pypi%20package)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/stance-llm)
 
-Classify stances of entities related to a statement in German text using large language models (LLMs). 
+Classify stances of entities related to a statement in German or English text using large language models (LLMs). 
+
+---
+
+## v0.3.0: English prompt support added
+
+> **New:** stance-llm now supports both German (`"de"`) and English (`"en"`) prompt chains.  
+> You can select the language for all main functions (`detect_stance`, `process`, etc.) via the `language` parameter.
+> - All prompt templates and answer options are available in both languages.
+> - The default is `"de"` (German) for backward compatibility.
+> - See [`docs/prompt-wordings.md`](docs/prompt-wordings.md) for the exact prompt text constructions in both languages.
 
 stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
 
 stance-llm offers several prompt chains to choose from to classify stances (see [implemented prompt chains](#implemented-prompt-chains)). At its core, in terms of input and output, you choose an LLM, choose one of several prompt chain options, and then you feed stance-llm a list of dictionaries in the form:
 
 ```
-[{"text":<German-text-to-analyze>, 
+[{"text":<German-or-English-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}]
+"statement": <the (German or English) statement to evaluate stance of entity toward>}]
 ```
 
 for example:
@@ -33,9 +43,9 @@ Going beyond basic functionality, stance-llm currently allows for [entity maskin
 
 ## Motivation
 
-We developed and evaluated a number of different German LLM prompts during a research project (preprint with detailed evaluation results forthcoming). 
+We developed and evaluated a number of different German LLM prompts during a research project ([pre-print available here](https://osf.io/preprints/socarxiv/5a3k8_v1)). 
 At this stage, stance-llm provides an interface to easily use these specific, [different prompt chains](#implemented-prompt-chains) on your own data and getting structured output back.
-Thus we provide a way to easily leverage LLMs for stance classification of named entities regarding an arbitrary statement in German text.
+Thus we provide a way to easily leverage LLMs for stance classification of named entities regarding an arbitrary statement in German and English text.
 
 We generally believe that the hype around LLMs for many NLP tasks is overblown (for many reasons).
 
@@ -44,13 +54,28 @@ For this general, hard task, the use of LLMs, as task-unspecific, general models
 
 ## Installation
 
-> ⚠️ `stance-llm` requires **Python 3.10** or higher.
+> ⚠️ `stance-llm` requires **Python 3.12** or higher.
 
 stance-llm is available through PyPI:
 ```bash
 pip install stance-llm
 ```
 
+### Development setup using uv
+
+To set up the development environment and install dependencies using `uv`, run:
+
+```bash
+uv sync
+```
+
+This by default will create a `.venv/` folder containing the environment, including the dev dependency group.
+
+To activate the development environment (here on Linux):
+
+```bash
+source .venv/bin/activate
+```
 
 ## How to use `stance-llm`
 
@@ -68,9 +93,9 @@ Your data could look like this:
 To use the data with stance-llm, turn your data into a list of dictionaries of the form:
 
 ```
-[{"text":<German-text-to-analyze>, 
+[{"text":<German-or-English-text-to-analyze>, 
 "ent_text": <entity string to classify stance for>, 
-"statement": <the (German) statement to evaluate stance of entity toward>}]
+"statement": <the (German or English) statement to evaluate stance of entity toward>}]
 ```
 
 Optionally, per item in the list of dictionaries:
@@ -79,9 +104,9 @@ Optionally, per item in the list of dictionaries:
 
 ### Choose your LLM
 
-stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted (eg. OpenAI, VertexAI...) or running locally. 
+stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted or running locally. In our experience, using the `models.Transformers` method works well, and it is also the one we currently test against.
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI or ...) will reject some prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI) will reject some or all prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
@@ -109,14 +134,6 @@ from guidance import models
 disco7b = models.Transformers("DiscoResearch/DiscoLM_German_7b_v1")
 ```
 
-or maybe you want to use OpenAI's servers to do the work for you (*wiederwillig* or *zähneknirschend*, as we say in German).
-
-```python
-from guidance import models
-
-gpt35 = models.OpenAI("gpt-3.5-turbo",api_key=<your-API-key>)
-```
-
 Let's create some test data:
 
 ```python
@@ -140,7 +157,7 @@ from stance_llm.process import detect_stance
 
 classification = detect_stance(
             eg = test_examples[0], #we run this on the first example only
-            llm = gpt35,
+            llm = disco7b,
             chain_label = "is" # This is where we choose our prompt chain
         )
 ```
@@ -160,10 +177,10 @@ from stance_llm.process import process
 
 process(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<folder-to-your-output-folder>,
     chain_used="is", #here, we choose our prompt chain
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True)
 ```
 
@@ -174,24 +191,24 @@ from stance_llm.process import process_evaluate
 
 process_evaluate(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<folder-to-your-output-folder>,
     chain_used="is",
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True)
 ```
 
 ### Entity masking
 
-LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this, if you want to classify stances of entities that are relatively visible it might make sense to "mask" them. stance-llm provides a way to do so by providing an `entity_mask` option to its main functions (`detect_stance`, `process` and `process_evaluate`). You can supply a more neutral string to this option (e.g. "Organisation X") and this will hide the actual entity name from the LLM in all prompts.
+LLMs are trained on large amounts of (sometimes stolen, hrrmpf) data. Given this, if you want to classify stances of entities that are relatively visible it might make sense to "mask" them. stance-llm provides a way to do so by providing an `entity_mask` option to its main functions (`detect_stance`, `process` and `process_evaluate`). You can supply a more neutral string to this option (e.g. "Organisation A") and this will hide the actual entity name from the LLM in all prompts.
 
 ```python
 process(
     egs=test_examples,
-    llm=gpt35,
+    llm=disco7b,
     export_folder=<path-to-your-output-folder>,
     chain_used="is",
-    model_used="openai-gpt35", #the label you want to give the LLM used
+    model_used="disco7b", #the label you want to give the LLM used
     stream_out=True,
     entity_mask="Organisation X" #this string will be used to mask the entity
     )
@@ -205,11 +222,11 @@ Generally, you should get a warning (via guidance) if you use a chat version wit
 
 ### Use of multiple LLMs in one prompt chain
 
-Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, for example, in [is2](#is2), a locally hosted model (like Disco LM) for the classification part and a model accessed through an API for the irrelevance check part (like GPT-3.5). Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
+Theoretically, prompt chains (currently only implemented for [is2](#is2)) can use a different LLM for different parts of the prompt chain, for example, in [is2](#is2), a locally hosted model (like Disco LM) for the classification part and a model accessed through an API for the irrelevance check part. Using dual LLMs in this way can be enabled by passing a second `guidance.models.Model` object via the option `llm2` in `detect_stance`, `process` and `process_evaluate`.
 
 ## Implemented prompt chains
 
-Feel free to play around with those. We will have a preprint out soon on which chains worked best on our specific data (which might be really different from yours).
+Feel free to play around with those. We have a [pre-print available here](https://osf.io/preprints/socarxiv/5a3k8_v1) on which chains worked best on our very specific data we developped this tool for (which might be really different from yours).
 
 ### is
 ![is_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/is_prompt_illu.svg)
@@ -266,22 +283,16 @@ Feel free to play around with those. We will have a preprint out soon on which c
 
 For future releases, we could envision at least:
 - a closer integration with spacy doc objects
-- extending chains to different languages
 - providing an interface for providing custom prompt chains
 
 Get in touch if you want to contribute.
 
 # Development
 
-The package is developeed with poetry. Run tests with:
+The package is developed using `uv` for environment and dependency management. 
 
-```python
-poetry install
-poetry run pytest
-```
+Run tests with:
 
-Some of the tests send a small example to the OpenAI api. To run them, you need to set a variable OPEN_AI_KEY in a .env file like:
-
-```.env
-OPEN_AI_KEY='<your-api-key>'
+```bash
+uv run pytest
 ```
