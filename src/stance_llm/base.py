@@ -30,8 +30,8 @@ IRRELEVANCE_ANSWERS = {
 }
 IRRELEVANCE_ANSWERS2 = {
     "de": {
-        "irrelevant": "Bezieht keine Haltung",
-        "stance": "Bezieht eine Haltung",
+        "irrelevant": "Bezieht Stellung",
+        "stance": "Bezieht keine Stellung",
     },
     "en": {
         "irrelevant": "Does not express a position",
@@ -90,13 +90,13 @@ def construct_general_stance_prompt(input_text, entity, language="de"):
     if language == "en":
         prompt = (
             f"Analyze the following text: {input_text}. "
-            f"Does the organization {entity} express an implicit or explicit position? "
+            f"Does the organization {entity} express an implicit or explicit position regarding an issue? "
             f"Refer only to the text. Answer with {IRRELEVANCE_ANSWERS2['en']['irrelevant']} or {IRRELEVANCE_ANSWERS2['en']['stance']}"
         )
     else:
         prompt = (
             f"Analysiere den folgenden Text: {input_text}. "
-            f"Äussert die Organisation {entity} eine implizite oder explizite Haltung? "
+            f"Bezieht die Organisation {entity} implizit oder explizit Stellung zu einem Sachverhalt? "
             f"Beziehe dich nur auf den Text. Antworte mit {IRRELEVANCE_ANSWERS2['de']['irrelevant']} oder {IRRELEVANCE_ANSWERS2['de']['stance']}"
         )
     return prompt
