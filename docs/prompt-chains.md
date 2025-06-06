@@ -1,14 +1,18 @@
 # Prompt Chains Documentation
 
-This document outlines the exact prompts used in the stance-llm system for both German (`de`) and English (`en`). Each prompt construction function is shown with its template in both languages.
+This document outlines the prompt construction functions used in the stance-llm system for both German (`de`) and English (`en`). Each prompt construction function is shown with its template in both languages.
 
-The different prompt chains (see the main Readme and the figures in docs/figures) combine these different functions in different control flows.
+The different prompt chains (see the main Readme and the figures in [`docs/figures`](docs/figures)) combine these different functions in different control flows.
 
 ---
 
 ## 1. Irrelevance Prompt
 
-**Function:** `construct_irrelevance_prompt(input_text, entity, statement, language)`
+**Function:** 
+
+```
+construct_irrelevance_prompt(input_text, entity, statement, language)
+```
 
 - **German (`de`):**
   ```
@@ -24,7 +28,11 @@ The different prompt chains (see the main Readme and the figures in docs/figures
 
 ## 2. Summary Prompt
 
-**Function:** `construct_summary_prompt(input_text, entity, language)`
+**Function:** 
+
+```
+construct_summary_prompt(input_text, entity, language)
+```
 
 - **German (`de`):**
   ```
@@ -42,7 +50,11 @@ The different prompt chains (see the main Readme and the figures in docs/figures
 
 ## 3. Statement-Specific Summary Prompt
 
-**Function:** `construct_summary_statementspecific_prompt(input_text, entity, statement, language)`
+**Function:** 
+
+```
+construct_summary_statementspecific_prompt(input_text, entity, statement, language)
+```
 
 - **German (`de`):**
   ```
@@ -62,23 +74,31 @@ The different prompt chains (see the main Readme and the figures in docs/figures
 
 ## 4. General Stance Prompt
 
-**Function:** `construct_general_stance_prompt(input_text, entity, language)`
+**Function:**
+
+```
+construct_general_stance_prompt(input_text, entity, language)
+```
 
 - **German (`de`):**
   ```
-  Analysiere den folgenden Text: {input_text}. Äussert die Organisation {entity} eine implizite oder explizite Haltung? Beziehe dich nur auf den Text. Antworte mit Bezieht keine Haltung oder Bezieht eine Haltung
+  Analysiere den folgenden Text: {input_text}. Bezieht die Organisation {entity} implizit oder explizit Stellung zu einem Sachverhalt? Beziehe dich nur auf den Text. Antworte mit Bezieht Stellung oder Bezieht keine Stellung
   ```
 
 - **English (`en`):**
   ```
-  Analyze the following text: {input_text}. Does the organization {entity} express an implicit or explicit position? Refer only to the text. Answer with Does not express a position or Expresses a position
+  Analyze the following text: {input_text}. Does the organization {entity} express an implicit or explicit position regarding an issue? Refer only to the text. Answer with Does not express a position or Expresses a position
   ```
 
 ---
 
 ## 5. Support Stance Prompt
 
-**Function:** `construct_support_stance_prompt(input_text, entity, statement, language)`
+**Function:** 
+
+```
+construct_support_stance_prompt(input_text, entity, statement, language)
+```
 
 - **German (`de`):**
   ```
@@ -94,11 +114,15 @@ The different prompt chains (see the main Readme and the figures in docs/figures
 
 ## 6. Opposition Stance Prompt
 
-**Function:** `construct_opposition_stance_prompt(input_text, entity, statement, language)`
+**Function:** 
+
+```
+construct_opposition_stance_prompt(input_text, entity, statement, language)
+```
 
 - **German (`de`):**
   ```
-  Analysiere den folgenden Text: {input_text}. Lehnt die Organisation {entity} folgende die Aussage ab: {statement}? Beziehe dich nur auf den Text. Antworte mit Ja oder Nein
+  Analysiere den folgenden Text: {input_text}. Lehnt die Organisation {entity} die folgende Aussage ab: {statement}? Beziehe dich nur auf den Text. Antworte mit Ja oder Nein
   ```
 
 - **English (`en`):**
@@ -108,9 +132,9 @@ The different prompt chains (see the main Readme and the figures in docs/figures
 
 ---
 
-## 7. Stance Options for Direct Selection
+## 7. Stance categorization based on constrained generation
 
-Some chains use direct selection from stance options. These are:
+Some chains prompt models to generate sentences starting with a fixed set of possible expressions. These are then used to categorize stances (see 8.):
 
 - **German (`de`):**
   - `"drückt keine Haltung aus dazu, dass"` (does not express a position that)
@@ -136,11 +160,11 @@ Some chains use direct selection from stance options. These are:
   - `"irrelevant"`: `Does not take a stance`
   - `"stance"`: `Takes a stance`
 
-### General Stance Answers
+### General Stance Answers (IRRELEVANCE_ANSWERS2)
 
 - **German (`de`):**
-  - `"irrelevant"`: `Bezieht keine Haltung`
-  - `"stance"`: `Bezieht eine Haltung`
+  - `"irrelevant"`: `Bezieht Stellung`
+  - `"stance"`: `Bezieht keine Stellung`
 
 - **English (`en`):**
   - `"irrelevant"`: `Does not express a position`

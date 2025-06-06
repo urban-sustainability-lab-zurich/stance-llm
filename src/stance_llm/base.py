@@ -128,7 +128,7 @@ def construct_opposition_stance_prompt(input_text, entity, statement, language="
     else:
         prompt = (
             f"Analysiere den folgenden Text: {input_text}. "
-            f"Lehnt die Organisation {entity} folgende die Aussage ab: {statement}? "
+            f"Lehnt die Organisation {entity} die folgende Aussage ab: {statement}? "
             f"Beziehe dich nur auf den Text. Antworte mit Ja oder Nein"
         )
     return prompt
