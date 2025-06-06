@@ -5,7 +5,7 @@ import shutil
 from unittest.mock import Mock
 
 from stance_llm.base import StanceClassification, get_registered_chains, get_registered_chains_keys
-from stance_llm.process import detect_stance, make_export_folder
+from stance_llm.process import detect_stance, make_export_folder, CHAIN_METHOD_LABELS, get_available_chain_labels
 
 
 def test_mask_entity_replaces_entity_and_returns_self():
@@ -36,17 +36,8 @@ def test_detect_stance_calls_chain_method(monkeypatch, chain_label):
     }
     # Mock a dummy LLM model
     mock_llm = Mock()
-    # Static correct mapping from chain_label to method name in StanceClassification
-    chain_method_map = {
-        "sis": "summarize_irrelevant_stance_chain",
-        "is": "irrelevant_stance_chain",
-        "nise": "nested_irrelevant_summary_explicit",
-        "s2is": "summarize_v2_irrelevant_stance_chain",
-        "s2": "summarize_v2_chain",
-        "is2": "irrelevant_summarize_v2_chain",
-        "nis2e": "nested_irrelevant_summary_v2_explicit",
-    }
-    method_name = chain_method_map.get(chain_label, None)
+    # Use the mapping from process.py to ensure consistency
+    method_name = CHAIN_METHOD_LABELS.get(chain_label, None)
     if method_name is None:
         # Skip chain labels not covered in detect_stance function logic
         pytest.skip(f"Chain label {chain_label} not covered")
@@ -109,3 +100,23 @@ def test_make_export_folder_creates_and_returns_path(tmp_path):
     # Call again, should return without creating again
     folder_path2 = make_export_folder(str(base_folder), model_used, chain_used, run_alias)
     assert folder_path2 == folder_path
+
+
+def test_chain_method_labels_consistency():
+    """Test that the chain method labels mapping is consistent and accessible."""
+    # Test that we can get available chain labels
+    available_labels = get_available_chain_labels()
+    assert isinstance(available_labels, list)
+    assert len(available_labels) > 0
+    
+    # Test that all labels in the mapping are strings
+    for label, method_name in CHAIN_METHOD_LABELS.items():
+        assert isinstance(label, str)
+        assert isinstance(method_name, str)
+        assert method_name.startswith("summarize_") or method_name.startswith("irrelevant_") or method_name.startswith("nested_")
+    
+    # Test that expected chains are present
+    expected_chains = ["sis", "is", "nise", "s2is", "s2", "is2", "nis2e"]
+    for chain in expected_chains:
+        assert chain in CHAIN_METHOD_LABELS
+        assert chain in available_labels

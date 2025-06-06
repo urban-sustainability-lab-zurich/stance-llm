@@ -36,7 +36,7 @@ def test_process_language_selection(test_examples, english_examples, gpt2_trf, t
         llm=gpt2_trf,
         export_folder=str(tmp_path),
         chain_used="s2is",
-        model_used="mock-model",
+        model_used="s2is",
         stream_out=False,
         language="de"
     )
@@ -47,7 +47,7 @@ def test_process_language_selection(test_examples, english_examples, gpt2_trf, t
         llm=gpt2_trf,
         export_folder=str(tmp_path),
         chain_used="s2is",
-        model_used="mock-model",
+        model_used="s2is",
         stream_out=False,
         language="en"
     )

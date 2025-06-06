@@ -16,6 +16,42 @@ from stance_llm.base import (
 )
 
 
+# Chain method mapping - exported for testing
+CHAIN_METHOD_LABELS = {
+    "sis": "summarize_irrelevant_stance_chain",
+    "is": "irrelevant_stance_chain", 
+    "nise": "nested_irrelevant_summary_explicit",
+    "s2is": "summarize_v2_irrelevant_stance_chain",
+    "s2": "summarize_v2_chain",
+    "is2": "irrelevant_summarize_v2_chain",
+    "nis2e": "nested_irrelevant_summary_v2_explicit",
+}
+
+
+def get_chain_method_map(task: StanceClassification) -> dict:
+    """Get the mapping of chain labels to their corresponding methods.
+    
+    Args:
+        task: A StanceClassification instance to get methods from
+        
+    Returns:
+        Dictionary mapping chain labels to their corresponding methods
+    """
+    return {
+        label: getattr(task, method_name) 
+        for label, method_name in CHAIN_METHOD_LABELS.items()
+    }
+
+
+def get_available_chain_labels() -> list:
+    """Get list of available chain labels for testing.
+    
+    Returns:
+        List of available chain label strings
+    """
+    return list(CHAIN_METHOD_LABELS.keys())
+
+
 def detect_stance(
     eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None, language="de"
 ) -> Self:
@@ -55,16 +91,7 @@ def detect_stance(
     if entity_mask is not None:
         task = task.mask_entity(entity_mask=entity_mask)
 
-    chain_method_map = {
-        "sis": task.summarize_irrelevant_stance_chain,
-        "is": task.irrelevant_stance_chain,
-        "nise": task.nested_irrelevant_summary_explicit,
-        "s2is": task.summarize_v2_irrelevant_stance_chain,
-        "s2": task.summarize_v2_chain,
-        "is2": task.irrelevant_summarize_v2_chain,
-        "nis2e": task.nested_irrelevant_summary_v2_explicit,
-    }
-
+    chain_method_map = get_chain_method_map(task)
     classification_func = chain_method_map.get(chain_label)
     if classification_func is None:
         raise NameError(f"Chain label {chain_label} is not supported")
