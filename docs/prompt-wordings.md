@@ -1,4 +1,4 @@
-# Prompt Chains Documentation
+# Prompt Construction Documentation
 
 This document outlines the prompt construction functions used in the stance-llm system for both German (`de`) and English (`en`). Each prompt construction function is shown with its template in both languages.
 

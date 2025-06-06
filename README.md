@@ -14,7 +14,7 @@ Classify stances of entities related to a statement in German or English text us
 > You can select the language for all main functions (`detect_stance`, `process`, etc.) via the `language` parameter.
 > - All prompt templates and answer options are available in both languages.
 > - The default is `"de"` (German) for backward compatibility.
-> - See [`docs/prompt-chains.md`](docs/prompt-chains.md) for the exact prompt texts in both languages.
+> - See [`docs/prompt-wordings.md`](docs/prompt-wordings.md) for the exact prompt text constructions in both languages.
 
 stance-llm is built on [guidance](https://github.com/guidance-ai/guidance), which provides a unified interface to different LLMs and enables constrained grammar and structured output.
 
