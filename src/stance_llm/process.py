@@ -211,9 +211,9 @@ def process(
                     id_key=id_key,
                 )
             time.sleep(wait_time)
-        except:
+        except Exception as e:
             # if error return error stance classification
-            logger.error(f"Classification failed for task. Writing error to stance_pred.")
+            logger.exception(f"Classification failed for task ({e}). Writing error to stance_pred.")
             eg["run_alias"] = run_alias
             eg["stance_pred"] = "error"
             eg["meta"] = {
