@@ -14,6 +14,7 @@ from stance_llm.base import (
     get_registered_chains,
     get_allowed_dual_llm_chains,
 )
+from stance_llm.backends import assert_constrained_generation, resolve_chat
 
 
 # Chain method mapping - exported for testing
@@ -53,7 +54,7 @@ def get_available_chain_labels() -> list:
 
 
 def detect_stance(
-    eg: dict, llm, chain_label: str, llm2=None, chat=True, entity_mask=None, language="de"
+    eg: dict, llm, chain_label: str, llm2=None, chat="auto", entity_mask=None, language="de"
 ) -> Self:
     """Detect stance of an entity in a dictionary input
 
@@ -65,6 +66,9 @@ def detect_stance(
         eg: A dictionary item with a "text" key containing text to classify and a "ent_text" key containing a string matching the organizational entity to predict stance for and a key "statement" containing the statement to evaluate the stance against
         llm: A guidance model backend from guidance.models
         chain_label: A implemented llm chain. See stance_llm.base.get_registered_chains for list
+        chat: Whether to prompt the model in chat mode. Defaults to "auto", which
+            infers chat vs. completion from the model's chat template. Pass True/False
+            to override.
 
     Returns:
         A StanceClassification class object with a stance and meta data
@@ -95,7 +99,8 @@ def detect_stance(
     classification_func = chain_method_map.get(chain_label)
     if classification_func is None:
         raise NameError(f"Chain label {chain_label} is not supported")
-    # Pass language to all chains
+    # Resolve chat="auto" from the model, then pass language to all chains
+    chat = resolve_chat(llm, chat)
     classification = classification_func(llm=llm, chat=chat, llm2=llm2, language=language)
     return classification
 
@@ -152,11 +157,17 @@ def process(
     wait_time=5,
     stream_out=True,
     id_key=None,
-    chat=True,
+    chat="auto",
     llm2=None,
     entity_mask=None,
     language="de",
 ):
+    # Fail fast with a clear message if the backend can't enforce grammars, and
+    # resolve chat="auto" once for the whole run.
+    assert_constrained_generation(llm)
+    if llm2 is not None:
+        assert_constrained_generation(llm2)
+    chat = resolve_chat(llm, chat)
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
     logger.info(f"Starting run {run_alias}")
@@ -417,7 +428,7 @@ def process_evaluate(
     llm,
     model_used: str,
     chain_used: str,
-    chat=True,
+    chat="auto",
     wait_time=0.5,
     export_folder="./evaluations",
     llm2=None,
