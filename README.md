@@ -106,7 +106,7 @@ Optionally, per item in the list of dictionaries:
 
 stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted or running locally. In our experience, using the `models.Transformers` method works well, and it is also the one we currently test against.
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI) will reject some or all prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, and including ollama's OpenAI-compatible server) **cannot enforce** constrained grammar and will reject some or all prompt chains. If you want to make use of all available prompt chains, run an LLM locally and in-process (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which **can** enforce constrained grammar. See the table below for an overview, and **[docs/local-models.md](docs/local-models.md)** for setup recipes — including using models you already pulled with [ollama](https://ollama.com/).
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
@@ -217,8 +217,7 @@ process(
 ### Chat models
 
 Some LLMs loadable as guidance models are "chat" models requiring a different form of prompting.
-All prompt chains in stance-llm are implemented in both chat and non-chat versions. You can choose which version to use by specifying the boolean (True/ False) `chat` option to its main functions (`detect_stance`, `process` and `process_evaluate`). It defaults to "True".
-Generally, you should get a warning (via guidance) if you use a chat version with a non-chat LLM model.
+All prompt chains in stance-llm are implemented in both chat and non-chat versions. The `chat` option to the main functions (`detect_stance`, `process` and `process_evaluate`) controls which is used. It defaults to `"auto"`, which inspects the model's chat template and picks chat or completion prompting for you; pass `chat=True` or `chat=False` to override the detection.
 
 ### Use of multiple LLMs in one prompt chain
 
