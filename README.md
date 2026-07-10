@@ -106,7 +106,7 @@ Optionally, per item in the list of dictionaries:
 
 stance-llm is built on top of [guidance](https://github.com/guidance-ai/guidance), making it possible to use a variety of LLMs through the [guidance.models.Model](https://guidance.readthedocs.io/en/stable/generated/guidance.models.Model.html#guidance-models-model) class, which can be either externally hosted or running locally. In our experience, using the `models.Transformers` method works well, and it is also the one we currently test against.
 
-> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI) will reject some or all prompt chains due to not allowing for constrained grammar. If you want to make use of all available prompt chains, use an LLM running locally (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which does **not** use constrained grammar. See table below for an overview.
+> ⚠️ Prompt chain compatibility: Models accessed through an API (eg. OpenAI, and including ollama's OpenAI-compatible server) **cannot enforce** constrained grammar and will reject some or all prompt chains. If you want to make use of all available prompt chains, run an LLM locally and in-process (eg. through `guidance.models.Transformers` or `guidance.models.LlamaCpp`), which **can** enforce constrained grammar. See the table below for an overview, and **[docs/local-models.md](docs/local-models.md)** for setup recipes — including using models you already pulled with [ollama](https://ollama.com/).
 
 | prompt chain | constrained grammar    | second llm option     |
 |--------------|------------------------|-----------------------|
@@ -217,8 +217,7 @@ process(
 ### Chat models
 
 Some LLMs loadable as guidance models are "chat" models requiring a different form of prompting.
-All prompt chains in stance-llm are implemented in both chat and non-chat versions. You can choose which version to use by specifying the boolean (True/ False) `chat` option to its main functions (`detect_stance`, `process` and `process_evaluate`). It defaults to "True".
-Generally, you should get a warning (via guidance) if you use a chat version with a non-chat LLM model.
+All prompt chains in stance-llm are implemented in both chat and non-chat versions. The `chat` option to the main functions (`detect_stance`, `process` and `process_evaluate`) controls which is used. It defaults to `"auto"`, which inspects the model's chat template and picks chat or completion prompting for you; pass `chat=True` or `chat=False` to override the detection.
 
 ### Use of multiple LLMs in one prompt chain
 
@@ -229,21 +228,21 @@ Theoretically, prompt chains (currently only implemented for [is2](#is2)) can us
 Feel free to play around with those. We have a [pre-print available here](https://osf.io/preprints/socarxiv/5a3k8_v1) on which chains worked best on our very specific data we developped this tool for (which might be really different from yours).
 
 ### is
-![is_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/is_prompt_illu.svg)
+![is_prompt_illu](docs/figures/is_prompt_illu.svg)
 1. prompts the LLM to check, if there is a stance in the text related to the statement, or not
 2. if the stance in the text is found to be related to the statement, the LLM is prompted to classify the stance as support not support, if not related stance: stance=irrelevant
 3. if the stance is not support: the stance=opposition 
 
 
 ### sis
-![sis_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/sis_prompt_illu.svg)
+![sis_prompt_illu](docs/figures/sis_prompt_illu.svg)
 1. prompt the LLM to summarise the input text
 2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
 3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
 
 
 ### nise
-![nise_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/nise_prompt_illu.svg)
+![nise_prompt_illu](docs/figures/nise_prompt_illu.svg)
 1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
 2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
 3. prompt the LLM to summarise the input text
@@ -252,27 +251,27 @@ Feel free to play around with those. We have a [pre-print available here](https:
 
 
 ### s2
-![s2_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/s2_prompt_illu.svg)
+![s2_prompt_illu](docs/figures/s2_prompt_illu.svg)
 1. prompts the LLM to summarise the input text in relation to the statement
 2. prompts the LLM to classify the detected actor's stance based on the summary. Stance class labels to select from: irrelevant, opposition, support
 
 
 ### is2
-![is2_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/is2_prompt_illu.svg)
+![is2_prompt_illu](docs/figures/is2_prompt_illu.svg)
 1. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
 2. if actor has a related stance: continue with 3., if not: stance=irrelevance
 3. summarises text in relation to the statement and prompts in the same prompt text/step for the stance classification for either opposition or support
 
 
 ### s2is
-![s2is_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/s2is_prompt_illu.svg)
+![s2is_prompt_illu](docs/figures/s2is_prompt_illu.svg)
 1. prompt the LLM to summarise the input text in relation to the statement
 2. prompts the LLM to classify whether the detected actor has a stance in the summary related to the statement, or not
 3. if actor has a related stance: the LLM is prompted to classify the stance as opposition or support, if not related stance: stance=irrelevant
 
 
 ### nis2e
-![nis2e_prompt_illu](https://raw.githubusercontent.com/urban-sustainability-lab-zurich/stance-llm/docs/prompt_visualisations/docs/figures/nis2e_prompt_illu.svg)
+![nis2e_prompt_illu](docs/figures/nis2e_prompt_illu.svg)
 1. prompts the LLM if there is a (general) stance of the detected actor in the text, if not: stance=irrelevant
 2. prompts the LLM whether the stance of the actor has a relation to the statement, or not, if not: stance=irrelevant
 3. prompt the LLM to summarise the input text in relation to the statement

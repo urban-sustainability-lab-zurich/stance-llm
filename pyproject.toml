@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = "stance-llm"
-version = "0.3.0"
+version = "0.5.0"
 requires-python = ">=3.12"
 description = "Classify stances of entities related to a statement in German or English text using large language models (LLMs)"
 readme = "README.md"
@@ -16,14 +16,22 @@ authors = [
 urls = { repository = "https://github.com/urban-sustainability-lab-zurich/stance-llm" }
 
 dependencies = [
-    "guidance >=0.2.0",
+    "guidance >=0.3.0",
     "loguru >=0.7.2",
     "tqdm >=4.65.0",
     "polars >=0.20.15",
     "wonderwords >=2.2.0",
     "scikit-learn >=1.4.2",
-    "numpy ==1.26.4",
+    "numpy >=1.26,<3",
 ]
+
+[project.optional-dependencies]
+# Local, in-process guidance backends that can enforce constrained grammars.
+# stance-llm's chains require one of these; API/HTTP backends do not work.
+# See docs/local-models.md.
+transformers = ["transformers >=4.41.1", "torch >=2.3"]
+llamacpp = ["llama-cpp-python >=0.3"]
+onnx = ["onnxruntime-genai >=0.4"]
 
 [tool.uv]
 default-groups = ["dev"]
@@ -38,7 +46,7 @@ dev = [
     "openai >=1.30.1",
     "pytest >=8.2.1",
     "pytest-dotenv >=0.5.2",
-    "torch ==2.3.0",
+    "torch >=2.3",
 ]
 
 [tool.pytest.ini_options]

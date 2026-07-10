@@ -74,7 +74,7 @@ def stance_detection_runs_trf(test_examples, gpt2_trf):
     for chain in REGISTERED_LLM_CHAINS:
         for test_eg in test_examples:
             classification = detect_stance(
-                eg=test_eg, llm=gpt2_trf, chain_label=chain
+                eg=test_eg, llm=gpt2_trf, chain_label=chain, chat=True
             )
             classifications.append(classification)
     return classifications
@@ -85,7 +85,7 @@ def stance_detection_runs_english_trf(english_examples, gpt2_trf):
     for chain in REGISTERED_LLM_CHAINS:
         for test_eg in english_examples:
             classification = detect_stance(
-                eg=test_eg, llm=gpt2_trf, chain_label=chain, language="en"
+                eg=test_eg, llm=gpt2_trf, chain_label=chain, language="en", chat=True
             )
             classifications.append(classification)
     return classifications
@@ -99,6 +99,7 @@ def stance_detection_run_masked_trf(test_examples, gpt2_trf):
         llm=gpt2_trf,
         chain_label="s2",
         entity_mask="Organisation X",
+        chat=True,
     )
     return run
 
