@@ -25,6 +25,14 @@ dependencies = [
     "numpy >=1.26,<3",
 ]
 
+[project.optional-dependencies]
+# Local, in-process guidance backends that can enforce constrained grammars.
+# stance-llm's chains require one of these; API/HTTP backends do not work.
+# See docs/local-models.md.
+transformers = ["transformers >=4.41.1", "torch >=2.3"]
+llamacpp = ["llama-cpp-python >=0.3"]
+onnx = ["onnxruntime-genai >=0.4"]
+
 [tool.uv]
 default-groups = ["dev"]
 
