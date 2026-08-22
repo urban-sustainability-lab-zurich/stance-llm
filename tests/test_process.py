@@ -106,3 +106,22 @@ def test_process_evaluate_creates_folder_contents(
     assert "classifications.jsonl" in file_list
     assert "meta.json" in file_list
     assert "metrics.json" in file_list
+
+
+def test_process_evaluate_english_language(
+    english_examples, gpt2_trf, test_output_dir
+):
+    process_evaluate(
+        egs=english_examples,
+        llm=gpt2_trf,
+        export_folder=test_output_dir,
+        chain_used="s2is",
+        model_used="gpt35",
+        language="en",
+    )
+    out = pathlib.Path(test_output_dir)
+    file_list = [str(item.name) for item in list(out.rglob("*")) if item.is_file()]
+    shutil.rmtree(test_output_dir)
+    assert "classifications.jsonl" in file_list
+    assert "meta.json" in file_list
+    assert "metrics.json" in file_list

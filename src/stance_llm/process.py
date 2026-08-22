@@ -1,7 +1,6 @@
 import os
 import time
 from datetime import date
-from typing_extensions import Self
 
 import srsly
 from tqdm import tqdm
@@ -17,45 +16,24 @@ from stance_llm.base import (
 from stance_llm.backends import assert_constrained_generation, resolve_chat
 
 
-# Chain method mapping - exported for testing
-CHAIN_METHOD_LABELS = {
-    "sis": "summarize_irrelevant_stance_chain",
-    "is": "irrelevant_stance_chain", 
-    "nise": "nested_irrelevant_summary_explicit",
-    "s2is": "summarize_v2_irrelevant_stance_chain",
-    "s2": "summarize_v2_chain",
-    "is2": "irrelevant_summarize_v2_chain",
-    "nis2e": "nested_irrelevant_summary_v2_explicit",
-}
-
-
 def get_chain_method_map(task: StanceClassification) -> dict:
     """Get the mapping of chain labels to their corresponding methods.
-    
+
     Args:
         task: A StanceClassification instance to get methods from
-        
+
     Returns:
-        Dictionary mapping chain labels to their corresponding methods
+        Dictionary mapping chain labels to their corresponding bound methods
     """
     return {
-        label: getattr(task, method_name) 
-        for label, method_name in CHAIN_METHOD_LABELS.items()
+        label: getattr(task, method_name)
+        for label, method_name in get_registered_chains().items()
     }
-
-
-def get_available_chain_labels() -> list:
-    """Get list of available chain labels for testing.
-    
-    Returns:
-        List of available chain label strings
-    """
-    return list(CHAIN_METHOD_LABELS.keys())
 
 
 def detect_stance(
     eg: dict, llm, chain_label: str, llm2=None, chat="auto", entity_mask=None, language="de"
-) -> Self:
+) -> StanceClassification:
     """Detect stance of an entity in a dictionary input
 
     Expects a dictionary item with a "text" key containing text to classify, a key "ent_text"
@@ -73,12 +51,11 @@ def detect_stance(
     Returns:
         A StanceClassification class object with a stance and meta data
     """
-    if 'text' not in eg.keys():
-        logger.error("Input dictionary for classification has not text key")
-    if 'ent_text' not in eg.keys():
-        logger.error("Input dictionary for classification has not ent_text key")
-    if 'statement' not in eg.keys():
-        logger.error("Input dictionary for classification has not statement key")
+    for key in ("text", "ent_text", "statement"):
+        if key not in eg:
+            raise KeyError(
+                f"Input dictionary for classification is missing required key {key!r}"
+            )
     chain_labels = get_registered_chains()
     if chain_label not in chain_labels:
         raise NameError("Chain label is not registered")
@@ -162,6 +139,25 @@ def process(
     entity_mask=None,
     language="de",
 ):
+    """Classify a list of examples and stream out the results.
+
+    Serves like a main function that
+     - sends data together with constructed prompts to the llm (detect_stance())
+     - assigns run alias (specific name) and saves classifications together with prompt texts (get_prompt_texts_from_meta() & save_classifications_jsonl())
+
+    Args:
+        egs: list of examples to classify as dictionaries with at least keys "text","ent_text","statement" (see detect_stance())
+        llm: A guidance model backend from guidance.models
+        export_folder: Folder for evaluation output.
+        model_used: name of the currently employed llm
+        chain_used: name of prompt chain of the current execution
+        true_stance_key: contains true stance. Defaults to None.
+        wait_time: Wait time between two prompts sent to the llm. Defaults to 5.
+        id_key: id of the instance. Defaults to None.
+
+    Return:
+        Returns the classifications (with text, statement, etc.) together with the extracted predicted stance ("stance_pred") from out of the StanceClassification class attribute "stance" as well as the prompt texts from the attribute "meta"
+    """
     # Fail fast with a clear message if the backend can't enforce grammars, and
     # resolve chat="auto" once for the whole run.
     assert_constrained_generation(llm)
@@ -171,24 +167,6 @@ def process(
     r_word = RandomWord()
     run_alias = "-".join(r_word.random_words(2))
     logger.info(f"Starting run {run_alias}")
-    """serves like a main function that
-     - sends data together with constructed prompts to the llm (detect_stance())
-     - assigns run alias (specific name) and saves classifications together with prompt texts (get_prompt_texts_from_meta() & save_classifications_jsonl())
-    
-    Args:
-        egs: list of examples to classify as dictionaries with at least keys "text","ent_text","statement" (see detect_stance())
-        llm: A guidance model backend from guidance.models
-        export_folder: Folder for evaluation output.
-        model_used: name of the currently employed llm
-        chain_used: name of propt chain of the current execution
-        true_stance_key: contains true stance. Defaults to None.
-        wait_time: Wait time between two prompts sent to the llm. Defaults to 5.
-        id_key = id of the instance. Defaults to None.
-
-    Return:
-        Returns the classifications (with text, statement, etc.) together with the extracted predicted stance ("pred_stance") from out of the StanceClassification class attribute "stance" as well as the prompt texts from the attribute "meta"
-    
-    """
     pred_egs = []
     for eg in tqdm(egs):
         try:
@@ -433,6 +411,9 @@ def process_evaluate(
     export_folder="./evaluations",
     llm2=None,
     entity_mask=None,
+    stream_out=True,
+    id_key=None,
+    language="de",
 ):
     """Process a list of examples to via a llm backend, stream out results, evaluate against true values and save evaluations
 
@@ -441,10 +422,15 @@ def process_evaluate(
         llm: A guidance model backend from guidance.models
         model_used: String giving label for model backend
         chain_used: An implemented llm chain. See stance_llm.base.get_registered_chains for list
-        chat (bool, optional): Should a chat model variant be used? Defaults to True.
-        wait_time (int): Wait time (in seconds) between two prompts sent to the llm. Defaults to 5.
+        chat: Whether to prompt the model in chat mode. Defaults to "auto" (inferred from the model).
+        wait_time (int): Wait time (in seconds) between two prompts sent to the llm. Defaults to 0.5.
         export_folder (str, optional): Folder for evaluation output. Defaults to "./evaluations".
+        stream_out (bool, optional): Stream classifications to disk while running. Defaults to True.
+        id_key (optional): id of the example. Defaults to None.
+        language (str): "de" or "en". Defaults to "de".
     """
+    if not egs:
+        raise ValueError("egs is empty; nothing to process")
     preds = process(
         egs=egs,
         llm=llm,
@@ -453,10 +439,12 @@ def process_evaluate(
         chain_used=chain_used,
         wait_time=wait_time,
         true_stance_key="stance_true",
-        stream_out=True,
+        stream_out=stream_out,
+        id_key=id_key,
         chat=chat,
         llm2=llm2,
         entity_mask=entity_mask,
+        language=language,
     )
     eval_metrics = evaluate(preds)
     run_alias = preds[0]["run_alias"]

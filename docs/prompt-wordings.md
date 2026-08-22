@@ -82,7 +82,7 @@ construct_general_stance_prompt(input_text, entity, language)
 
 - **German (`de`):**
   ```
-  Analysiere den folgenden Text: {input_text}. Bezieht die Organisation {entity} implizit oder explizit Stellung zu einem Sachverhalt? Beziehe dich nur auf den Text. Antworte mit Bezieht Stellung oder Bezieht keine Stellung
+  Analysiere den folgenden Text: {input_text}. Bezieht die Organisation {entity} implizit oder explizit Stellung zu einem Sachverhalt? Beziehe dich nur auf den Text. Antworte mit Bezieht keine Stellung oder Bezieht Stellung
   ```
 
 - **English (`en`):**
@@ -163,8 +163,8 @@ Some chains prompt models to generate sentences starting with a fixed set of pos
 ### General Stance Answers (IRRELEVANCE_ANSWERS2)
 
 - **German (`de`):**
-  - `"irrelevant"`: `Bezieht Stellung`
-  - `"stance"`: `Bezieht keine Stellung`
+  - `"irrelevant"`: `Bezieht keine Stellung`
+  - `"stance"`: `Bezieht Stellung`
 
 - **English (`en`):**
   - `"irrelevant"`: `Does not express a position`

@@ -8,9 +8,9 @@ Classify stances of entities related to a statement in German or English text us
 
 ---
 
-## v0.3.0: English prompt support added
+## Language support
 
-> **New:** stance-llm now supports both German (`"de"`) and English (`"en"`) prompt chains.  
+> stance-llm supports both German (`"de"`) and English (`"en"`) prompt chains.  
 > You can select the language for all main functions (`detect_stance`, `process`, etc.) via the `language` parameter.
 > - All prompt templates and answer options are available in both languages.
 > - The default is `"de"` (German) for backward compatibility.

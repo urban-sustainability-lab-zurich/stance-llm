@@ -1,11 +1,10 @@
 import pytest
-import re
 import os
 import shutil
 from unittest.mock import Mock
 
 from stance_llm.base import StanceClassification, get_registered_chains, get_registered_chains_keys
-from stance_llm.process import detect_stance, make_export_folder, CHAIN_METHOD_LABELS, get_available_chain_labels
+from stance_llm.process import detect_stance, make_export_folder
 
 
 def test_mask_entity_replaces_entity_and_returns_self():
@@ -36,8 +35,8 @@ def test_detect_stance_calls_chain_method(monkeypatch, chain_label):
     }
     # Mock a dummy LLM model
     mock_llm = Mock()
-    # Use the mapping from process.py to ensure consistency
-    method_name = CHAIN_METHOD_LABELS.get(chain_label, None)
+    # Use the single chain registry to resolve the method name.
+    method_name = get_registered_chains().get(chain_label, None)
     if method_name is None:
         # Skip chain labels not covered in detect_stance function logic
         pytest.skip(f"Chain label {chain_label} not covered")
@@ -102,21 +101,14 @@ def test_make_export_folder_creates_and_returns_path(tmp_path):
     assert folder_path2 == folder_path
 
 
-def test_chain_method_labels_consistency():
-    """Test that the chain method labels mapping is consistent and accessible."""
-    # Test that we can get available chain labels
-    available_labels = get_available_chain_labels()
-    assert isinstance(available_labels, list)
-    assert len(available_labels) > 0
-    
-    # Test that all labels in the mapping are strings
-    for label, method_name in CHAIN_METHOD_LABELS.items():
-        assert isinstance(label, str)
-        assert isinstance(method_name, str)
-        assert method_name.startswith("summarize_") or method_name.startswith("irrelevant_") or method_name.startswith("nested_")
-    
-    # Test that expected chains are present
+def test_chain_registry_consistency():
+    """Every registered chain label maps to a real StanceClassification method."""
+    registry = get_registered_chains()
+    assert set(registry.keys()) == set(get_registered_chains_keys())
     expected_chains = ["sis", "is", "nise", "s2is", "s2", "is2", "nis2e"]
     for chain in expected_chains:
-        assert chain in CHAIN_METHOD_LABELS
-        assert chain in available_labels
+        assert chain in registry
+    for label, method_name in registry.items():
+        assert isinstance(label, str)
+        method = getattr(StanceClassification, method_name, None)
+        assert callable(method), f"{method_name} is not a method of StanceClassification"

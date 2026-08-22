@@ -19,10 +19,9 @@ dependencies = [
     "guidance >=0.3.0",
     "loguru >=0.7.2",
     "tqdm >=4.65.0",
-    "polars >=0.20.15",
     "wonderwords >=2.2.0",
     "scikit-learn >=1.4.2",
-    "numpy >=1.26,<3",
+    "srsly >=2.4.8",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +40,6 @@ dev = [
     "transformers >=4.41.1",
     "python-dotenv >=1.0.1",
     "ptpython >=3.0.26",
-    "srsly >=2.4.8",
     "typer >=0.9.0",
     "openai >=1.30.1",
     "pytest >=8.2.1",

@@ -59,8 +59,10 @@ def english_examples():
 
 @pytest.fixture(scope="module")
 def gpt2_trf():
-    # gpt2 model from huggingface as example of Transformer model
-    gpt2_trf = models.Transformers("openai-community/gpt2")
+    # Tiny random GPT-2 (a few MB) as a Transformers backend. Its outputs are
+    # meaningless, but the suite only asserts stance categories / file creation,
+    # so this keeps tests fast and avoids the ~500MB openai-community/gpt2 download.
+    gpt2_trf = models.Transformers("sshleifer/tiny-gpt2")
     return gpt2_trf
 
 
